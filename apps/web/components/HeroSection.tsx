@@ -2,47 +2,9 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { IoMdArrowForward } from "react-icons/io";
-import { LuSparkles, LuTarget, LuRocket } from "react-icons/lu";
-import { AiOutlineBarChart } from "react-icons/ai";
-import { FiZap } from "react-icons/fi";
-import { IoCodeSharp } from "react-icons/io5";
 
 export default function HeroSection() {
   const [demoStep, setDemoStep] = useState(0);
-
-  const features = [
-    {
-      icon: <LuSparkles className="w-6 h-6" />,
-      title: "Beautiful Tours",
-      description:
-        "Create stunning onboarding experiences with smooth animations and modern design",
-    },
-    {
-      icon: <LuTarget className="w-6 h-6" />,
-      title: "Precise Targeting",
-      description: "Highlight any element on your page with CSS selectors",
-    },
-    {
-      icon: <AiOutlineBarChart className="w-6 h-6" />,
-      title: "Analytics Built-in",
-      description: "Track completion rates, drop-offs, and user engagement",
-    },
-    {
-      icon: <FiZap className="w-6 h-6" />,
-      title: "Lightning Fast",
-      description: "Tiny bundle size with zero impact on page performance",
-    },
-    {
-      icon: <IoCodeSharp className="w-6 h-6" />,
-      title: "Easy Integration",
-      description: "Add to any website with just 2 lines of code",
-    },
-    {
-      icon: <LuRocket className="w-6 h-6" />,
-      title: "No Code Required",
-      description: "Visual editor makes tour creation simple for everyone",
-    },
-  ];
 
   const demoSteps = [
     { title: "Welcome!", desc: "Let's show you around" },
@@ -130,7 +92,7 @@ export default function HeroSection() {
                   </div>
                   <button
                     onClick={nextDemoStep}
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm flex items-center gap-2 transition duration-300 cursor-pointer"
+                    className="px-4 py-2 text-white bg-purple-600 hover:bg-purple-700 rounded-lg text-sm flex items-center gap-2 transition duration-300 cursor-pointer"
                   >
                     {demoStep < demoSteps.length - 1 ? "Next" : "Restart"}
                     <IoMdArrowForward className="w-4 h-4" />
