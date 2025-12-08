@@ -29,7 +29,7 @@ export default function Features() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="bg-slate-800/50 backdrop-blur border border-white/10 rounded-xl p-6 hover:border-purple-400/50 transition"
+              className="bg-slate-800/50 backdrop-blur border border-white/10 rounded-xl p-6 hover:border-purple-400/50"
             >
               <div className="w-12 h-12 bg-purple-600/20 rounded-lg flex items-center justify-center text-purple-400 mb-4">
                 {feature.icon}
