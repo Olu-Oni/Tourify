@@ -92,7 +92,7 @@ export default function HeroSection() {
                   </div>
                   <button
                     onClick={nextDemoStep}
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm flex items-center gap-2 transition duration-300 cursor-pointer"
+                    className="px-4 py-2 text-white bg-purple-600 hover:bg-purple-700 rounded-lg text-sm flex items-center gap-2 transition duration-300 cursor-pointer"
                   >
                     {demoStep < demoSteps.length - 1 ? "Next" : "Restart"}
                     <IoMdArrowForward className="w-4 h-4" />

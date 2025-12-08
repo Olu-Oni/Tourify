@@ -42,7 +42,7 @@ export default function Navbar() {
         </div>
 
         <div className="hidden md:block">
-          <button className="px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300">
+          <button className="px-6 py-2 text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300">
             Get Started
           </button>
         </div>
@@ -95,8 +95,8 @@ export default function Navbar() {
                 Dashboard
               </Link>
 
-              <Link href="/signin">
-                <button className="w-[80%] px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300">
+              <Link href="/signin" className="w-[85%]">
+                <button className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300">
                   Get Started
                 </button>
               </Link>
