@@ -8,6 +8,7 @@ import type {
   IAnalytics,
   TourProgress,
 } from "./types/index";
+import { TourAvatar } from "./avatar";
 
 export class TourManager implements ITourManager {
   private tourData: TourData;
@@ -20,6 +21,8 @@ export class TourManager implements ITourManager {
   private overlay: HTMLElement | null = null;
   private tooltip: HTMLElement | null = null;
   private spotlight: HTMLElement | null = null;
+  private avatar: TourAvatar | null = null;
+  private avatarContainer: HTMLElement | null = null;
 
   // Event handlers
   private keyboardHandler: ((e: KeyboardEvent) => void) | null = null;
@@ -39,6 +42,7 @@ export class TourManager implements ITourManager {
 
     this.isActive = true;
     this.createOverlay();
+    this.createAvatarContainer();
     this.showStep(this.currentStep);
     this.analytics.track("tour_started", { tourId: this.tourData.id });
   }
@@ -59,6 +63,9 @@ export class TourManager implements ITourManager {
         stepId: this.tourData.steps[this.currentStep].id,
         stepNumber: this.currentStep + 1,
       });
+
+      // Avatar nods when moving to next step
+      this.avatar?.nod();
 
       this.currentStep++;
       this.showStep(this.currentStep);
@@ -85,6 +92,9 @@ export class TourManager implements ITourManager {
   }
 
   complete(): void {
+    // Avatar celebrates completion
+    this.avatar?.celebrate();
+
     this.analytics.track("tour_completed", {
       tourId: this.tourData.id,
       totalSteps: this.tourData.steps.length,
@@ -93,8 +103,46 @@ export class TourManager implements ITourManager {
     // Clear progress
     localStorage.removeItem(`tour_progress_${this.tourData.id}`);
 
-    // end tour
-    this.stop();
+    // End tour after celebration animation
+    setTimeout(() => this.stop(), 1500);
+  }
+
+  private createAvatarContainer(): void {
+    // Create container for 3D avatar
+    this.avatarContainer = document.createElement("div");
+    this.avatarContainer.className = "tour-avatar-container";
+    this.avatarContainer.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 150px;
+      height: 150px;
+      z-index: 10002;
+      border-radius: 50%;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      transform: scale(0.8);
+      transition: all 0.3s ease;
+    `;
+
+    document.body.appendChild(this.avatarContainer);
+
+    // Initialize Three.js avatar
+    this.avatar = new TourAvatar(this.avatarContainer);
+
+    // Fade in
+    requestAnimationFrame(() => {
+      if (this.avatarContainer) {
+        this.avatarContainer.style.opacity = "1";
+        this.avatarContainer.style.transform = "scale(1)";
+      }
+    });
+
+    // Wave on first appearance
+    setTimeout(() => this.avatar?.wave(), 500);
   }
 
   private showStep(stepIndex: number): void {
@@ -126,6 +174,13 @@ export class TourManager implements ITourManager {
       stepId: step.id,
       stepNumber: stepIndex + 1,
     });
+
+    // Avatar reacts to step
+    if (stepIndex === 1) {
+      this.avatar?.wave();
+    } else {
+      this.avatar?.nod();
+    }
   }
 
   private createOverlay(): void {
@@ -310,6 +365,21 @@ export class TourManager implements ITourManager {
   private cleanup(): void {
     this.removeTooltip();
 
+    // Remove avatar
+    if (this.avatar) {
+      this.avatar.destroy();
+      this.avatar = null;
+    }
+
+    if (this.avatarContainer) {
+      this.avatarContainer.style.opacity = "0";
+      this.avatarContainer.style.transform = "scale(0.8)";
+      setTimeout(() => {
+        this.avatarContainer?.remove();
+        this.avatarContainer = null;
+      }, 300);
+    }
+
     // Remove the spotlight when tour fully ends
     if (this.spotlight) {
       this.spotlight.remove();
@@ -362,9 +432,6 @@ export class TourManager implements ITourManager {
             </div>
           </div>
           <div class="tour-tooltip-actions">
-            ${
-              // "<button class="tour-btn tour-btn-secondary tour-skip-btn">Skip Tour</button>" 
-              ""} 
             ${
               !isFirst
                 ? '<button class="tour-btn tour-btn-secondary tour-prev-btn">← Back</button>'

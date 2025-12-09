@@ -1,31 +1,31 @@
-// avatar.ts - Simple Three.js 3D Avatar for Tour
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 
 export class TourAvatar {
   private scene: THREE.Scene;
   private camera: THREE.PerspectiveCamera;
   private renderer: THREE.WebGLRenderer;
-  private avatar: THREE.Group;
+  private avatar: THREE.Group | null = null;
+  private mixer: THREE.AnimationMixer | null = null;
+  private animations: Map<string, THREE.AnimationAction> = new Map();
   private container: HTMLElement;
   private animationId: number | null = null;
 
   constructor(container: HTMLElement) {
     this.container = container;
     
-    // Setup scene
     this.scene = new THREE.Scene();
-    this.scene.background = null; // Transparent
+    this.scene.background = null;
     
-    // Setup camera
     this.camera = new THREE.PerspectiveCamera(
       45,
       container.clientWidth / container.clientHeight,
       0.1,
       1000
     );
-    this.camera.position.z = 5;
+    this.camera.position.z = 3;
+    this.camera.position.y = 0.5;
     
-    // Setup renderer
     this.renderer = new THREE.WebGLRenderer({ 
       alpha: true, 
       antialias: true 
@@ -34,95 +34,45 @@ export class TourAvatar {
     this.renderer.setPixelRatio(window.devicePixelRatio);
     container.appendChild(this.renderer.domElement);
     
-    // Create avatar
-    this.avatar = this.createAvatar();
-    this.scene.add(this.avatar);
-    
-    // Add lights
     this.setupLights();
+    this.loadAvatar();
     
-    // Handle resize
     window.addEventListener('resize', this.handleResize.bind(this));
-    
-    // Start animation
     this.animate();
   }
 
-  private createAvatar(): THREE.Group {
-    const avatar = new THREE.Group();
+  private loadAvatar(): void {
+    const loader = new GLTFLoader();
     
-    // Create a simple character using geometric shapes
-    
-    // Head
-    const headGeometry = new THREE.SphereGeometry(0.5, 32, 32);
-    const headMaterial = new THREE.MeshPhongMaterial({ 
-      color: 0xffdbac,
-      flatShading: false
+    // Put your .glb file in public folder
+    loader.load('../../public/Chick.gltf', (gltf) => {
+      this.avatar = gltf.scene;
+      this.scene.add(this.avatar);
+      
+      // Scale and position
+      this.avatar.scale.set(1.5, 1.5, 1.5);
+      this.avatar.position.set(0, -0.8, -0.5);
+      this.avatar.rotation.set(0, 0.75, 0);
+      
+      // Setup animation mixer
+      this.mixer = new THREE.AnimationMixer(this.avatar);
+      
+      // Store all animations
+      gltf.animations.forEach((clip) => {
+        const action = this.mixer!.clipAction(clip);
+        this.animations.set(clip.name, action);
+        console.log('Available animation:', clip.name);
+      });
+      
+      // Start with Idle animation
+      this.playAnimation('Idle', true);
     });
-    const head = new THREE.Mesh(headGeometry, headMaterial);
-    head.position.y = 1.5;
-    avatar.add(head);
-    
-    // Eyes
-    const eyeGeometry = new THREE.SphereGeometry(0.08, 16, 16);
-    const eyeMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
-    
-    const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-    leftEye.position.set(-0.15, 1.6, 0.4);
-    avatar.add(leftEye);
-    
-    const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-    rightEye.position.set(0.15, 1.6, 0.4);
-    avatar.add(rightEye);
-    
-    // Smile
-    const smileCurve = new THREE.EllipseCurve(
-      0, 0,
-      0.2, 0.15,
-      Math.PI, 2 * Math.PI,
-      false,
-      0
-    );
-    const smilePoints = smileCurve.getPoints(20);
-    const smileGeometry = new THREE.BufferGeometry().setFromPoints(smilePoints);
-    const smileMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
-    const smile = new THREE.Line(smileGeometry, smileMaterial);
-    smile.position.set(0, 1.3, 0.5);
-    smile.rotation.x = Math.PI;
-    avatar.add(smile);
-    
-    // Body
-    const bodyGeometry = new THREE.CylinderGeometry(0.4, 0.5, 1.2, 32);
-    const bodyMaterial = new THREE.MeshPhongMaterial({ 
-      color: 0x4a90e2 
-    });
-    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-    body.position.y = 0.4;
-    avatar.add(body);
-    
-    // Arms
-    const armGeometry = new THREE.CylinderGeometry(0.12, 0.1, 0.8, 16);
-    const armMaterial = new THREE.MeshPhongMaterial({ color: 0xffdbac });
-    
-    const leftArm = new THREE.Mesh(armGeometry, armMaterial);
-    leftArm.position.set(-0.5, 0.5, 0);
-    leftArm.rotation.z = Math.PI / 6;
-    avatar.add(leftArm);
-    
-    const rightArm = new THREE.Mesh(armGeometry, armMaterial);
-    rightArm.position.set(0.5, 0.5, 0);
-    rightArm.rotation.z = -Math.PI / 6;
-    avatar.add(rightArm);
-    
-    return avatar;
   }
 
   private setupLights(): void {
-    // Ambient light
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     this.scene.add(ambientLight);
     
-    // Directional light
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
     directionalLight.position.set(2, 3, 2);
     this.scene.add(directionalLight);
@@ -131,9 +81,10 @@ export class TourAvatar {
   private animate(): void {
     this.animationId = requestAnimationFrame(this.animate.bind(this));
     
-    // Gentle rotation and bobbing
-    this.avatar.rotation.y += 0.01;
-    this.avatar.position.y = Math.sin(Date.now() * 0.001) * 0.1;
+    // Update animations
+    if (this.mixer) {
+      this.mixer.update(0.016); // ~60fps
+    }
     
     this.renderer.render(this.scene, this.camera);
   }
@@ -148,68 +99,47 @@ export class TourAvatar {
     this.renderer.setSize(width, height);
   }
 
-  // Animation methods
-  public wave(): void {
-    const rightArm = this.avatar.children.find(
-      child => child.position.x > 0 && child instanceof THREE.Mesh
-    );
-    
-    if (rightArm) {
-      const startRotation = rightArm.rotation.z;
-      const waveAnimation = () => {
-        const time = Date.now() * 0.005;
-        rightArm.rotation.z = startRotation + Math.sin(time) * 0.5;
-      };
+  // Play animation by name with loop option
+  private playAnimation(name: string, loop: boolean = false): void {
+    const action = this.animations.get(name);
+    if (action) {
+      // Stop all other animations
+      this.animations.forEach(a => a.stop());
       
-      // Animate for 2 seconds
-      const intervalId = setInterval(waveAnimation, 16);
-      setTimeout(() => clearInterval(intervalId), 2000);
+      // Configure and play
+      action.reset();
+      action.loop = loop ? THREE.LoopRepeat : THREE.LoopOnce;
+      action.clampWhenFinished = true;
+      action.play();
     }
   }
 
+  public wave(): void {
+    // Use Attack animation for waving
+    this.playAnimation('Attack');
+    
+    // Return to Idle after animation completes
+    setTimeout(() => {
+      this.playAnimation('Idle', true);
+    }, 1000);
+  }
+
   public celebrate(): void {
-    // Jump animation
-    const startY = this.avatar.position.y;
-    const duration = 1000;
-    const startTime = Date.now();
+    // Use Run animation for celebration
+    this.playAnimation('Run');
     
-    const jump = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      
-      // Ease out bounce
-      const height = Math.sin(progress * Math.PI) * 0.5;
-      this.avatar.position.y = startY + height;
-      
-      if (progress < 1) {
-        requestAnimationFrame(jump);
-      }
-    };
-    
-    jump();
+    setTimeout(() => {
+      this.playAnimation('Idle', true);
+    }, 1500);
   }
 
   public nod(): void {
-    // Nodding animation
-    const head = this.avatar.children[0];
-    const startRotation = head.rotation.x;
-    const duration = 1000;
-    const startTime = Date.now();
+    // Use Idle_Peck for nodding
+    this.playAnimation('Idle_Peck');
     
-    const nod = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      
-      head.rotation.x = startRotation + Math.sin(progress * Math.PI * 4) * 0.2;
-      
-      if (progress < 1) {
-        requestAnimationFrame(nod);
-      } else {
-        head.rotation.x = startRotation;
-      }
-    };
-    
-    nod();
+    setTimeout(() => {
+      this.playAnimation('Idle', true);
+    }, 800);
   }
 
   public destroy(): void {
@@ -219,24 +149,11 @@ export class TourAvatar {
     
     window.removeEventListener('resize', this.handleResize.bind(this));
     
-    // Dispose of Three.js objects
-    this.avatar.traverse((object) => {
-      if (object instanceof THREE.Mesh) {
-        object.geometry.dispose();
-        if (Array.isArray(object.material)) {
-          object.material.forEach(material => material.dispose());
-        } else {
-          object.material.dispose();
-        }
-      }
-    });
+    if (this.avatar) {
+      this.scene.remove(this.avatar);
+    }
     
     this.renderer.dispose();
     this.container.removeChild(this.renderer.domElement);
   }
-}
-
-// Usage in your tour manager
-export function initAvatar(container: HTMLElement): TourAvatar {
-  return new TourAvatar(container);
 }

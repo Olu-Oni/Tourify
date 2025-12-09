@@ -28,7 +28,7 @@ class TourWidget {
   private async loadTourData(): Promise<void> {
     try {
       // use api call later
-      const tourData = this.getMockTourData(2);
+      const tourData = this.getMockTourData(1);
 
       this.tourManager = new TourManager(
         tourData,
