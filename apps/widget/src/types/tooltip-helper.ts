@@ -21,6 +21,21 @@ export class TooltipHelper {
       return;
     }
 
+    // Check if target element (spotlight) is larger than viewport
+    const targetRect = targetElement.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    const targetLargerThanViewport = 
+      targetRect.width > viewportWidth/2 && 
+      targetRect.height > viewportHeight/2;
+
+    // If target is larger than viewport, center the tooltip
+    if (targetLargerThanViewport) {
+      this.centerTooltip(tooltip, 200);
+      return;
+    }
+
     try {
       const { x, y, placement } = await computePosition(targetElement, tooltip, {
         placement: "bottom",
