@@ -23,6 +23,7 @@ export class TourManager implements ITourManager {
 
   // Event handlers
   private keyboardHandler: ((e: KeyboardEvent) => void) | null = null;
+  private scrollPreventHandler: ((e: Event) => void) | null = null;
 
   constructor(tourData: TourData, config: TourConfig, analytics: IAnalytics) {
     this.tourData = tourData;
@@ -132,7 +133,8 @@ export class TourManager implements ITourManager {
     this.overlay.className = "tour-overlay";
     document.body.appendChild(this.overlay);
 
-    document.body.style.overflow = "hidden";
+    // Disable scrolling using event listeners
+    this.disableScroll();
 
     // Trigger reflow for animation
     void this.overlay.offsetWidth;
@@ -141,6 +143,72 @@ export class TourManager implements ITourManager {
     requestAnimationFrame(() => {
       this.overlay?.classList.add("active");
     });
+  }
+
+  private disableScroll(): void {
+    // Prevent multiple handlers
+    if (this.scrollPreventHandler) return;
+
+    // Create handler function
+    this.scrollPreventHandler = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    };
+
+    // Add event listeners for all scroll methods
+    const options = { passive: false, capture: true };
+    
+    // Mouse wheel/trackpad
+    document.addEventListener('wheel', this.scrollPreventHandler, options);
+    document.addEventListener('mousewheel', this.scrollPreventHandler, options);
+    document.addEventListener('DOMMouseScroll', this.scrollPreventHandler, options);
+    
+    // Touch events for mobile
+    document.addEventListener('touchmove', this.scrollPreventHandler, options);
+    
+    // Keyboard scroll (Page Up/Down, Space, Arrow Keys)
+    document.addEventListener('keydown', this.preventKeyboardScroll, options);
+    
+    // Prevent default scroll behavior
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+  }
+
+  private preventKeyboardScroll(e: KeyboardEvent): void {
+    // Keys that trigger scrolling
+    const scrollKeys = [
+      ' ',           // Space
+      'PageUp',
+      'PageDown',
+      'End',
+      'Home',
+      'ArrowUp',
+      'ArrowDown'
+    ];
+    
+    if (scrollKeys.includes(e.key)) {
+      e.preventDefault();
+    }
+  }
+
+  private enableScroll(): void {
+    // Remove event listeners
+    if (this.scrollPreventHandler) {
+      const options = { capture: true };
+      
+      document.removeEventListener('wheel', this.scrollPreventHandler, options);
+      document.removeEventListener('mousewheel', this.scrollPreventHandler, options);
+      document.removeEventListener('DOMMouseScroll', this.scrollPreventHandler, options);
+      document.removeEventListener('touchmove', this.scrollPreventHandler, options);
+      document.removeEventListener('keydown', this.preventKeyboardScroll, options);
+      
+      this.scrollPreventHandler = null;
+    }
+    
+    // Restore overflow
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
   }
 
   private createSpotlight(targetElement: HTMLElement): void {
@@ -157,7 +225,7 @@ export class TourManager implements ITourManager {
     this.spotlight.style.top = `${rect.top - 10}px`;
     this.spotlight.style.left = `${rect.left - 10}px`;
     this.spotlight.style.width = `${rect.width + 14}px`;
-    this.spotlight.style.height = `${rect.height + 20}px`;
+    this.spotlight.style.height = `${rect.height + 14}px`;
 
     // Set up auto-update listeners
     this.setupSpotlightAutoUpdate(targetElement);
@@ -169,7 +237,7 @@ export class TourManager implements ITourManager {
       this.spotlight.style.top = `${rect.top - 10}px`;
       this.spotlight.style.left = `${rect.left - 10}px`;
       this.spotlight.style.width = `${rect.width + 14}px`;
-      this.spotlight.style.height = `${rect.height + 20}px`;
+      this.spotlight.style.height = `${rect.height + 14}px`;
     }
   }
 
@@ -209,11 +277,17 @@ export class TourManager implements ITourManager {
   }
 
   private scrollToElement(element: HTMLElement): void {
+    // Temporarily enable scrolling for this operation
+    this.enableScroll();
+    
     element.scrollIntoView({
       behavior: "smooth",
       block: "center",
       inline: "center",
     });
+    
+    // Re-disable scrolling after a short delay
+    setTimeout(() => this.disableScroll(), 500);
   }
 
   private removeTooltip(): void {
@@ -247,7 +321,9 @@ export class TourManager implements ITourManager {
       setTimeout(() => {
         this.overlay?.remove();
         this.overlay = null;
-        document.body.style.overflow = "";
+        
+        // Re-enable scrolling
+        this.enableScroll();
       }, 300);
     }
 
@@ -304,7 +380,7 @@ export class TourManager implements ITourManager {
 
     document.body.appendChild(this.tooltip);
 
-    //Floating UI
+    // Floating UI
     const { TooltipHelper } = await import("./types/tooltip-helper");
     await TooltipHelper.positionTooltip(
       this.tooltip,
@@ -362,6 +438,4 @@ export class TourManager implements ITourManager {
 
     document.addEventListener("keydown", this.keyboardHandler);
   }
-
-  
 }
