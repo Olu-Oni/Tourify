@@ -14,5 +14,9 @@
   },
   "keywords": [],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "framer-motion": "^12.23.25",
+    "react-icons": "^5.5.0"
+  }
 }
