@@ -4,6 +4,8 @@ import {
   shift,
   offset,
   inline,
+  flip,
+  limitShift, // Import limitShift
 } from "@floating-ui/dom";
 import { TooltipPosition } from "./index";
 
@@ -19,21 +21,6 @@ export class TooltipHelper {
       return;
     }
 
-    // Check if target element (spotlight) is larger than viewport
-    const targetRect = targetElement.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    
-    const targetLargerThanViewport = 
-      targetRect.width > viewportWidth/2 || 
-      targetRect.height > viewportHeight;
-
-    // If target is larger than viewport, center the tooltip
-    if (targetLargerThanViewport) {
-      this.centerTooltip(tooltip, 200);
-      return;
-    }
-
     try {
       const { x, y, placement } = await computePosition(targetElement, tooltip, {
         placement: "bottom",
@@ -41,8 +28,18 @@ export class TooltipHelper {
         middleware: [
           offset(16),
           inline(),
-          autoPlacement({ padding: 12 }),
-          shift({ padding: 15 }),
+          flip({
+            fallbackAxisSideDirection: 'start',
+            padding: 12,
+          }),
+          shift({ 
+            padding: 15,
+            boundary: 'clippingAncestors',
+            crossAxis: true,
+            limiter: limitShift({
+              offset:50,
+            }),
+          }),
         ],
       });
 
@@ -50,14 +47,51 @@ export class TooltipHelper {
         position: "fixed",
         left: `${x}px`,
         top: `${y}px`,
+        maxHeight: "", // Remove any constraints
+        maxWidth: "",  // Remove any constraints
+        overflow: "visible",
       });
 
       tooltip.dataset.placement = placement;
+
+      // Final boundary check
+      this.ensureWithinViewport(tooltip);
     } catch (error) {
       console.warn("Positioning failed:", error);
       this.fallbackPosition(tooltip, targetElement);
     }
   }
+
+  private static ensureWithinViewport(tooltip: HTMLElement): void {
+    const rect = tooltip.getBoundingClientRect();
+    const padding = 15;
+    
+    let left = parseFloat(tooltip.style.left);
+    let top = parseFloat(tooltip.style.top);
+    
+    // Adjust horizontally if overflowing
+    if (rect.left < padding) {
+      left = padding;
+    } else if (rect.right > window.innerWidth - padding) {
+      left = window.innerWidth - rect.width - padding;
+    }
+    
+    // Adjust vertically if overflowing
+    if (rect.top < padding) {
+      top = padding;
+    } else if (rect.bottom > window.innerHeight - padding) {
+      top = window.innerHeight - rect.height - padding;
+    }
+    
+    // Only update if adjustments were needed
+    if (left !== parseFloat(tooltip.style.left) || top !== parseFloat(tooltip.style.top)) {
+      Object.assign(tooltip.style, {
+        left: `${left}px`,
+        top: `${top}px`,
+      });
+    }
+  }
+
 
   private static centerTooltip(tooltip: HTMLElement, offset: number = 0): void {
     tooltip.style.position = "fixed";
