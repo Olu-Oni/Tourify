@@ -1,6 +1,5 @@
 import {
   computePosition,
-  autoPlacement,
   shift,
   offset,
   inline,
