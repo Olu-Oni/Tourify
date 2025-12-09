@@ -11,6 +11,7 @@ import {
   FiEyeOff,
   FiArrowRight,
 } from "react-icons/fi";
+import { supabase } from "@/lib/supabaseClient";
 
 interface FormData {
   name: string;
@@ -78,15 +79,86 @@ export default function AuthScreens({ defaultMode }: AuthScreensProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      if (isLogin) {
+        // Login
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (error) {
+          setErrors({ email: error.message });
+          return;
+        }
+
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", data.user.id)
+          .single();
+
+        localStorage.setItem("user", JSON.stringify(profileData));
+
+        // Redirect to dashboard
+        router.push("/dashboard");
+      } else {
+        // Sign up
+        const { data: signUpData, error: signUpError } =
+          await supabase.auth.signUp({
+            email: formData.email,
+            password: formData.password,
+          });
+
+        if (signUpError) {
+          setErrors({ email: signUpError.message });
+          return;
+        }
+
+        await supabase.auth.resend({
+          type: "signup",
+          email: formData.email,
+        });
+
+        const { data: signInData, error: signInError } =
+          await supabase.auth.signInWithPassword({
+            email: formData.email,
+            password: formData.password,
+          });
+
+        if (signInError) {
+          setErrors({ email: signInError.message });
+          return;
+        }
+
+        // Insert user profile
+        const { error: profileError } = await supabase.from("profiles").insert([
+          {
+            id: signInData.user.id,
+            name: formData.name,
+            email: formData.email,
+          },
+        ]);
+
+        if (profileError) {
+          setErrors({ email: profileError.message });
+          return;
+        }
+
+        // Redirect to dashboard
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
       setIsLoading(false);
-      alert(isLogin ? "Login successful!" : "Account created successfully!");
-    }, 2000);
+    }
   };
 
   const switchMode = () => {
