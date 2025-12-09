@@ -42,7 +42,6 @@ export class TourManager implements ITourManager {
 
     this.isActive = true;
     this.createOverlay();
-    this.createAvatarContainer();
     this.showStep(this.currentStep);
     this.analytics.track("tour_started", { tourId: this.tourData.id });
   }
@@ -65,7 +64,7 @@ export class TourManager implements ITourManager {
       });
 
       // Avatar nods when moving to next step
-      this.avatar?.nod();
+      this.avatar?.eat();
 
       this.currentStep++;
       this.showStep(this.currentStep);
@@ -93,7 +92,7 @@ export class TourManager implements ITourManager {
 
   complete(): void {
     // Avatar celebrates completion
-    this.avatar?.celebrate();
+    this.avatar?.run();
 
     this.analytics.track("tour_completed", {
       tourId: this.tourData.id,
@@ -105,44 +104,6 @@ export class TourManager implements ITourManager {
 
     // End tour after celebration animation
     setTimeout(() => this.stop(), 1500);
-  }
-
-  private createAvatarContainer(): void {
-    // Create container for 3D avatar
-    this.avatarContainer = document.createElement("div");
-    this.avatarContainer.className = "tour-avatar-container";
-    this.avatarContainer.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 150px;
-      height: 150px;
-      z-index: 10002;
-      border-radius: 50%;
-      overflow: hidden;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      opacity: 0;
-      transform: scale(0.8);
-      transition: all 0.3s ease;
-    `;
-
-    document.body.appendChild(this.avatarContainer);
-
-    // Initialize Three.js avatar
-    this.avatar = new TourAvatar(this.avatarContainer);
-
-    // Fade in
-    requestAnimationFrame(() => {
-      if (this.avatarContainer) {
-        this.avatarContainer.style.opacity = "1";
-        this.avatarContainer.style.transform = "scale(1)";
-      }
-    });
-
-    // Wave on first appearance
-    setTimeout(() => this.avatar?.wave(), 500);
   }
 
   private showStep(stepIndex: number): void {
@@ -177,9 +138,9 @@ export class TourManager implements ITourManager {
 
     // Avatar reacts to step
     if (stepIndex === 1) {
-      this.avatar?.wave();
+      this.avatar?.run();
     } else {
-      this.avatar?.nod();
+      this.avatar?.eat();
     }
   }
 
@@ -213,35 +174,39 @@ export class TourManager implements ITourManager {
 
     // Add event listeners for all scroll methods
     const options = { passive: false, capture: true };
-    
+
     // Mouse wheel/trackpad
-    document.addEventListener('wheel', this.scrollPreventHandler, options);
-    document.addEventListener('mousewheel', this.scrollPreventHandler, options);
-    document.addEventListener('DOMMouseScroll', this.scrollPreventHandler, options);
-    
+    document.addEventListener("wheel", this.scrollPreventHandler, options);
+    document.addEventListener("mousewheel", this.scrollPreventHandler, options);
+    document.addEventListener(
+      "DOMMouseScroll",
+      this.scrollPreventHandler,
+      options
+    );
+
     // Touch events for mobile
-    document.addEventListener('touchmove', this.scrollPreventHandler, options);
-    
+    document.addEventListener("touchmove", this.scrollPreventHandler, options);
+
     // Keyboard scroll (Page Up/Down, Space, Arrow Keys)
-    document.addEventListener('keydown', this.preventKeyboardScroll, options);
-    
+    document.addEventListener("keydown", this.preventKeyboardScroll, options);
+
     // Prevent default scroll behavior
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
   }
 
   private preventKeyboardScroll(e: KeyboardEvent): void {
     // Keys that trigger scrolling
     const scrollKeys = [
-      ' ',           // Space
-      'PageUp',
-      'PageDown',
-      'End',
-      'Home',
-      'ArrowUp',
-      'ArrowDown'
+      " ", // Space
+      "PageUp",
+      "PageDown",
+      "End",
+      "Home",
+      "ArrowUp",
+      "ArrowDown",
     ];
-    
+
     if (scrollKeys.includes(e.key)) {
       e.preventDefault();
     }
@@ -251,19 +216,35 @@ export class TourManager implements ITourManager {
     // Remove event listeners
     if (this.scrollPreventHandler) {
       const options = { capture: true };
-      
-      document.removeEventListener('wheel', this.scrollPreventHandler, options);
-      document.removeEventListener('mousewheel', this.scrollPreventHandler, options);
-      document.removeEventListener('DOMMouseScroll', this.scrollPreventHandler, options);
-      document.removeEventListener('touchmove', this.scrollPreventHandler, options);
-      document.removeEventListener('keydown', this.preventKeyboardScroll, options);
-      
+
+      document.removeEventListener("wheel", this.scrollPreventHandler, options);
+      document.removeEventListener(
+        "mousewheel",
+        this.scrollPreventHandler,
+        options
+      );
+      document.removeEventListener(
+        "DOMMouseScroll",
+        this.scrollPreventHandler,
+        options
+      );
+      document.removeEventListener(
+        "touchmove",
+        this.scrollPreventHandler,
+        options
+      );
+      document.removeEventListener(
+        "keydown",
+        this.preventKeyboardScroll,
+        options
+      );
+
       this.scrollPreventHandler = null;
     }
-    
+
     // Restore overflow
-    document.body.style.overflow = '';
-    document.documentElement.style.overflow = '';
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
   }
 
   private createSpotlight(targetElement: HTMLElement): void {
@@ -334,13 +315,13 @@ export class TourManager implements ITourManager {
   private scrollToElement(element: HTMLElement): void {
     // Temporarily enable scrolling for this operation
     this.enableScroll();
-    
+
     element.scrollIntoView({
       behavior: "smooth",
       block: "center",
       inline: "center",
     });
-    
+
     // Re-disable scrolling after a short delay
     setTimeout(() => this.disableScroll(), 500);
   }
@@ -391,7 +372,7 @@ export class TourManager implements ITourManager {
       setTimeout(() => {
         this.overlay?.remove();
         this.overlay = null;
-        
+
         // Re-enable scrolling
         this.enableScroll();
       }, 300);
@@ -403,76 +384,112 @@ export class TourManager implements ITourManager {
     }
   }
 
-  private async createTooltip(
-    step: TourStep,
-    targetElement: HTMLElement,
-    stepIndex: number
-  ): Promise<void> {
-    this.tooltip = document.createElement("div");
-    this.tooltip.className = "tour-tooltip";
+private async createTooltip(
+  step: TourStep,
+  targetElement: HTMLElement,
+  stepIndex: number
+): Promise<void> {
+  this.tooltip = document.createElement("div");
+  this.tooltip.className = "tour-tooltip";
 
-    const totalSteps = this.tourData.steps.length;
-    const isFirst = stepIndex === 0;
-    const isLast = stepIndex === totalSteps - 1;
+  const totalSteps = this.tourData.steps.length;
+  const isFirst = stepIndex === 0;
+  const isLast = stepIndex === totalSteps - 1;
 
-    this.tooltip.innerHTML = `
-      <div class="tour-tooltip-content">
-        <div class="tour-tooltip-header">
+  this.tooltip.innerHTML = `
+    <div class="tour-tooltip-content">
+      <div class="tour-tooltip-header">
+        <div class="tour-avatar-mini">
+          <canvas class="tour-avatar-canvas" width="50" height="50"></canvas>
+        </div>
+        <div class="tour-tooltip-header-content">
           <h3>${step.title}</h3>
           <button class="tour-close-btn" aria-label="Close tour">×</button>
         </div>
-        <p>${step.description}</p>
-        <div class="tour-tooltip-footer">
-          <div class="tour-progress">
-            <span>Step ${stepIndex + 1} of ${totalSteps}</span>
-            <div class="tour-progress-bar">
-              <div class="tour-progress-fill" style="width: ${
-                ((stepIndex + 1) / totalSteps) * 100
-              }%"></div>
-            </div>
-          </div>
-          <div class="tour-tooltip-actions">
-            ${
-              !isFirst
-                ? '<button class="tour-btn tour-btn-secondary tour-prev-btn">← Back</button>'
-                : ""
-            }
-            <button class="tour-btn tour-btn-primary tour-next-btn">
-              ${isLast ? "Finish" : "Next →"}
-            </button>
+      </div>
+      <p>${step.description}</p>
+      <div class="tour-tooltip-footer">
+        <div class="tour-progress">
+          <span>Step ${stepIndex + 1} of ${totalSteps}</span>
+          <div class="tour-progress-bar">
+            <div class="tour-progress-fill" style="width: ${
+              ((stepIndex + 1) / totalSteps) * 100
+            }%"></div>
           </div>
         </div>
+        <div class="tour-tooltip-actions">
+          ${
+            !isFirst
+              ? '<button class="tour-btn tour-btn-secondary tour-prev-btn">← Back</button>'
+              : ""
+          }
+          <button class="tour-btn tour-btn-primary tour-next-btn">
+            ${isLast ? "Finish" : "Next →"}
+          </button>
+        </div>
       </div>
-    `;
+    </div>
+  `;
 
-    document.body.appendChild(this.tooltip);
+  document.body.appendChild(this.tooltip);
 
-    // Floating UI
-    const { TooltipHelper } = await import("./types/tooltip-helper");
-    await TooltipHelper.positionTooltip(
-      this.tooltip,
-      targetElement,
-      step.position
-    );
+  // IMPORTANT: Wait for the DOM to be ready before accessing the canvas
+  setTimeout(() => {
+    const avatarCanvas = this.tooltip?.querySelector(
+      ".tour-avatar-canvas"
+    ) as HTMLCanvasElement;
 
-    // Set up auto-update on scroll/resize
-    const cleanup = TooltipHelper.createAutoUpdate(
-      this.tooltip,
-      targetElement,
-      step.position
-    );
+    // Initialize Three.js avatar in tooltip
+    if (avatarCanvas && this.tooltip) {
+      try {
+        // Create new avatar instance for the tooltip
+        const tooltipAvatar = new TourAvatar(avatarCanvas);
+        
+        // Store reference for cleanup
+        (this.tooltip as any)._miniAvatar = tooltipAvatar;
+        
+        // Trigger a wave animation when tooltip appears
+        setTimeout(() => {
+          tooltipAvatar.run();
+        }, 500);
+      } catch (error) {
+        console.error("Failed to create avatar in tooltip:", error);
+        // Fallback: Add an emoji if Three.js fails
+        const avatarContainer = this.tooltip.querySelector('.tour-avatar-mini');
+        if (avatarContainer) {
+          avatarContainer.innerHTML = '👋';
+          avatarContainer.classList.add('avatar-fallback');
+        }
+      }
+    }
+  }, 50); // Small delay to ensure DOM is ready
 
-    // Store cleanup function
-    (this.tooltip as any)._cleanup = cleanup;
+  // Floating UI
+  const { TooltipHelper } = await import("./types/tooltip-helper");
+  await TooltipHelper.positionTooltip(
+    this.tooltip,
+    targetElement,
+    step.position
+  );
 
-    // Add event listeners
-    this.attachTooltipEvents();
+  // Set up auto-update on scroll/resize
+  const cleanup = TooltipHelper.createAutoUpdate(
+    this.tooltip,
+    targetElement,
+    step.position
+  );
 
-    // Animate in
-    requestAnimationFrame(() => {
-      this.tooltip?.classList.add("active");
-    });
-  }
+  // Store cleanup function
+  (this.tooltip as any)._cleanup = cleanup;
+
+  // Add event listeners
+  this.attachTooltipEvents();
+
+  // Animate in
+  requestAnimationFrame(() => {
+    this.tooltip?.classList.add("active");
+  });
+}
 
   private attachTooltipEvents(): void {
     if (!this.tooltip) return;

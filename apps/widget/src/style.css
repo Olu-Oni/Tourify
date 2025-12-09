@@ -74,9 +74,32 @@
 /* Tooltip Header */
 .tour-tooltip-header {
   display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.tour-avatar-mini {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  border: 3px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tour-tooltip-header-content {
+  flex: 1;
+  display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
+}
+
+.tour-avatar-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .tour-tooltip-header h3 {

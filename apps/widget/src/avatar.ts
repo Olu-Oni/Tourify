@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
+import { Loop } from 'three/tsl';
 
 export class TourAvatar {
   private scene: THREE.Scene;
@@ -45,7 +46,7 @@ export class TourAvatar {
     const loader = new GLTFLoader();
     
     // Put your .glb file in public folder
-    loader.load('../../public/Chick.gltf', (gltf) => {
+    loader.load('/Chick.gltf', (gltf) => {
       this.avatar = gltf.scene;
       this.scene.add(this.avatar);
       
@@ -114,7 +115,7 @@ export class TourAvatar {
     }
   }
 
-  public wave(): void {
+  public peck(): void {
     // Use Attack animation for waving
     this.playAnimation('Attack');
     
@@ -124,18 +125,26 @@ export class TourAvatar {
     }, 1000);
   }
 
-  public celebrate(): void {
+  public run(): void {
     // Use Run animation for celebration
-    this.playAnimation('Run');
+    this.playAnimation('Run', true);
     
     setTimeout(() => {
       this.playAnimation('Idle', true);
     }, 1500);
   }
+//   public celebrate(): void {
+//     // Use Run animation for celebration
+//     this.playAnimation('Run', true);
+    
+//     setTimeout(() => {
+//       this.playAnimation('Idle', true);
+//     }, 1500);
+//   }
 
-  public nod(): void {
+  public eat(): void {
     // Use Idle_Peck for nodding
-    this.playAnimation('Idle_Peck');
+    this.playAnimation('');
     
     setTimeout(() => {
       this.playAnimation('Idle', true);
