@@ -95,7 +95,7 @@ export default function Navbar() {
                 Dashboard
               </Link>
 
-              <Link href="/signin" className="w-[85%]">
+              <Link href="/signup" className="w-[85%]">
                 <button className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300">
                   Get Started
                 </button>
