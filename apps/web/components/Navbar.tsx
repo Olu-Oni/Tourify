@@ -33,7 +33,7 @@ export default function Navbar() {
           <Link href="/about" className={isActive("/about")}>
             About
           </Link>
-          <Link href="/docs" className={isActive("/docs")}>
+          <Link href="/documentation" className={isActive("/documentation")}>
             Docs
           </Link>
           <Link href="/dashboard" className={isActive("/dashboard")}>
@@ -81,9 +81,9 @@ export default function Navbar() {
                 About
               </Link>
               <Link
-                href="/docs"
+                href="/documentation"
                 onClick={() => setOpen(false)}
-                className={isActive("/docs")}
+                className={isActive("/documentation")}
               >
                 Docs
               </Link>

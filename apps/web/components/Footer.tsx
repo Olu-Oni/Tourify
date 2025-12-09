@@ -33,7 +33,7 @@ export default function Footer() {
                 Pricing
               </Link>
               <Link
-                href="/docs"
+                href="/documentation"
                 className="hover:text-white transition duration-300"
               >
                 Documentation
