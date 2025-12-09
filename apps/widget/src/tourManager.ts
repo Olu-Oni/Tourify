@@ -89,15 +89,11 @@ export class TourManager implements ITourManager {
       totalSteps: this.tourData.steps.length,
     });
 
-    // Show completion message
-    this.showCompletionMessage();
-
     // Clear progress
     localStorage.removeItem(`tour_progress_${this.tourData.id}`);
 
-    // setTimeout(() => {
-    //   this.stop();
-    // }, 3000);
+    // end tour
+    this.stop();
   }
 
   private showStep(stepIndex: number): void {
@@ -114,13 +110,12 @@ export class TourManager implements ITourManager {
       targetElement = document.body;
       console.warn(`Target element "${step.target}" not found`);
     }
-    
+
     // Create spotlight effect
-    this.createSpotlight(targetElement)
-    
+    this.createSpotlight(targetElement);
+
     // Scroll element into view
     this.scrollToElement(targetElement);
-
 
     // Create and position tooltip
     void this.createTooltip(step, targetElement, stepIndex);
@@ -148,50 +143,50 @@ export class TourManager implements ITourManager {
     });
   }
 
- private createSpotlight(targetElement: HTMLElement): void {
-  const rect = targetElement.getBoundingClientRect();
+  private createSpotlight(targetElement: HTMLElement): void {
+    const rect = targetElement.getBoundingClientRect();
 
-  // Create new spotlight if it doesn't exist
-  if (!this.spotlight) {
-    this.spotlight = document.createElement("div");
-    this.spotlight.className = "tour-spotlight";
-    document.body.appendChild(this.spotlight);
-  }
+    // Create new spotlight if it doesn't exist
+    if (!this.spotlight) {
+      this.spotlight = document.createElement("div");
+      this.spotlight.className = "tour-spotlight";
+      document.body.appendChild(this.spotlight);
+    }
 
-  // Update position 
-  this.spotlight.style.top = `${rect.top - 10}px`;
-  this.spotlight.style.left = `${rect.left - 10}px`;
-  this.spotlight.style.width = `${rect.width + 14}px`;
-  this.spotlight.style.height = `${rect.height + 20}px`;
-
-  // Set up auto-update listeners
-  this.setupSpotlightAutoUpdate(targetElement);
-}
-
-private updateSpotlight(targetElement: HTMLElement): void {
-  const rect = targetElement.getBoundingClientRect();
-  if (this.spotlight) {
+    // Update position
     this.spotlight.style.top = `${rect.top - 10}px`;
     this.spotlight.style.left = `${rect.left - 10}px`;
     this.spotlight.style.width = `${rect.width + 14}px`;
     this.spotlight.style.height = `${rect.height + 20}px`;
-  }
-}
 
-private setupSpotlightAutoUpdate(targetElement: HTMLElement): void {
-  const updateHandler = () => this.updateSpotlight(targetElement);
-  
-  window.addEventListener('resize', updateHandler);
-  window.addEventListener('scroll', updateHandler);
-
-  // Store cleanup function
-  if (this.spotlight) {
-    (this.spotlight as any)._cleanup = () => {
-      window.removeEventListener('resize', updateHandler);
-      window.removeEventListener('scroll', updateHandler);
-    };
+    // Set up auto-update listeners
+    this.setupSpotlightAutoUpdate(targetElement);
   }
-}
+
+  private updateSpotlight(targetElement: HTMLElement): void {
+    const rect = targetElement.getBoundingClientRect();
+    if (this.spotlight) {
+      this.spotlight.style.top = `${rect.top - 10}px`;
+      this.spotlight.style.left = `${rect.left - 10}px`;
+      this.spotlight.style.width = `${rect.width + 14}px`;
+      this.spotlight.style.height = `${rect.height + 20}px`;
+    }
+  }
+
+  private setupSpotlightAutoUpdate(targetElement: HTMLElement): void {
+    const updateHandler = () => this.updateSpotlight(targetElement);
+
+    window.addEventListener("resize", updateHandler);
+    window.addEventListener("scroll", updateHandler);
+
+    // Store cleanup function
+    if (this.spotlight) {
+      (this.spotlight as any)._cleanup = () => {
+        window.removeEventListener("resize", updateHandler);
+        window.removeEventListener("scroll", updateHandler);
+      };
+    }
+  }
 
   private saveProgress(): void {
     const progress: TourProgress = { currentStep: this.currentStep };
@@ -222,29 +217,37 @@ private setupSpotlightAutoUpdate(targetElement: HTMLElement): void {
   }
 
   private removeTooltip(): void {
-  if (this.tooltip) {
-    // Cleanup auto-update listeners
-    const cleanup = (this.tooltip as any)._cleanup;
-    if (cleanup) cleanup();
+    if (this.tooltip) {
+      // Cleanup auto-update listeners
+      const cleanup = (this.tooltip as any)._cleanup;
+      if (cleanup) cleanup();
 
-    this.tooltip.remove();
-    this.tooltip = null;
+      this.tooltip.remove();
+      this.tooltip = null;
+    }
+    // Clean up spotlight listeners but DON'T remove the element
+    // (so it can animate to next position)
+    if (this.spotlight) {
+      const cleanup = (this.spotlight as any)._cleanup;
+      if (cleanup) cleanup();
+    }
   }
-  if (this.spotlight) {
-    // Cleanup spotlight listeners
-    const cleanup = (this.spotlight as any)._cleanup;
-    if (cleanup) cleanup();
-  }
-}
 
   private cleanup(): void {
     this.removeTooltip();
+
+    // Remove the spotlight when tour fully ends
+    if (this.spotlight) {
+      this.spotlight.remove();
+      this.spotlight = null;
+    }
 
     if (this.overlay) {
       this.overlay.classList.remove("active");
       setTimeout(() => {
         this.overlay?.remove();
         this.overlay = null;
+        document.body.style.overflow = "";
       }, 300);
     }
 
@@ -358,39 +361,5 @@ private setupSpotlightAutoUpdate(targetElement: HTMLElement): void {
     document.addEventListener("keydown", this.keyboardHandler);
   }
 
-  private showCompletionMessage(): void {
-    this.removeTooltip();
-
-    const completion = document.createElement("div");
-    completion.className = "tour-completion";
-    completion.innerHTML = `
-    <div class="tour-completion-content">
-      <div class="tour-tooltip-header">
-        <button class="tour-close-btn" aria-label="Close tour">×</button>
-      </div>
-      <div class="tour-completion-icon">🎉</div>
-      <h2>Tour Complete!</h2>
-      <p>You're all set to get started.</p>
-    </div>
-  `;
-
-    document.body.appendChild(completion);
-
-    // Add close button handler
-    const closeBtn = completion.querySelector(".tour-close-btn");
-    closeBtn?.addEventListener("click", () => {
-      completion.remove();
-      this.stop();
-    });
-
-    // Animate in
-    requestAnimationFrame(() => {
-      completion.classList.add("active");
-    });
-
-    setTimeout(() => {
-      completion.remove();
-      this.stop();
-    }, 3000);
-  }
+  
 }
