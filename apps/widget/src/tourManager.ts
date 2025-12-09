@@ -53,7 +53,7 @@ export class TourManager implements ITourManager {
   }
 
   next(): void {
-    if (this.currentStep < this.tourData.steps.length -1) {
+    if (this.currentStep < this.tourData.steps.length - 1) {
       this.analytics.track("step_completed", {
         stepId: this.tourData.steps[this.currentStep].id,
         stepNumber: this.currentStep + 1,
@@ -114,12 +114,13 @@ export class TourManager implements ITourManager {
       targetElement = document.body;
       console.warn(`Target element "${step.target}" not found`);
     }
-
+    
+    // Create spotlight effect
+    this.createSpotlight(targetElement)
+    
     // Scroll element into view
     this.scrollToElement(targetElement);
 
-    // Create spotlight effect
-    this.createSpotlight(targetElement);
 
     // Create and position tooltip
     void this.createTooltip(step, targetElement, stepIndex);
@@ -136,7 +137,7 @@ export class TourManager implements ITourManager {
     this.overlay.className = "tour-overlay";
     document.body.appendChild(this.overlay);
 
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
 
     // Trigger reflow for animation
     void this.overlay.offsetWidth;
@@ -147,23 +148,50 @@ export class TourManager implements ITourManager {
     });
   }
 
-  private createSpotlight(targetElement: HTMLElement): void {
-    // Remove existing spotlight
-    if (this.spotlight) {
-      this.spotlight.remove();
-    }
+ private createSpotlight(targetElement: HTMLElement): void {
+  const rect = targetElement.getBoundingClientRect();
 
-    const rect = targetElement.getBoundingClientRect();
-
+  // Create new spotlight if it doesn't exist
+  if (!this.spotlight) {
     this.spotlight = document.createElement("div");
     this.spotlight.className = "tour-spotlight";
-    this.spotlight.style.top = `${rect.top -10}px`;
-    this.spotlight.style.left = `${rect.left -10}px`;
-    this.spotlight.style.width = `${rect.width + 14}px`;
-    this.spotlight.style.height = `${rect.height + 16}px`;
-
     document.body.appendChild(this.spotlight);
   }
+
+  // Update position 
+  this.spotlight.style.top = `${rect.top - 10}px`;
+  this.spotlight.style.left = `${rect.left - 10}px`;
+  this.spotlight.style.width = `${rect.width + 14}px`;
+  this.spotlight.style.height = `${rect.height + 20}px`;
+
+  // Set up auto-update listeners
+  this.setupSpotlightAutoUpdate(targetElement);
+}
+
+private updateSpotlight(targetElement: HTMLElement): void {
+  const rect = targetElement.getBoundingClientRect();
+  if (this.spotlight) {
+    this.spotlight.style.top = `${rect.top - 10}px`;
+    this.spotlight.style.left = `${rect.left - 10}px`;
+    this.spotlight.style.width = `${rect.width + 14}px`;
+    this.spotlight.style.height = `${rect.height + 20}px`;
+  }
+}
+
+private setupSpotlightAutoUpdate(targetElement: HTMLElement): void {
+  const updateHandler = () => this.updateSpotlight(targetElement);
+  
+  window.addEventListener('resize', updateHandler);
+  window.addEventListener('scroll', updateHandler);
+
+  // Store cleanup function
+  if (this.spotlight) {
+    (this.spotlight as any)._cleanup = () => {
+      window.removeEventListener('resize', updateHandler);
+      window.removeEventListener('scroll', updateHandler);
+    };
+  }
+}
 
   private saveProgress(): void {
     const progress: TourProgress = { currentStep: this.currentStep };
@@ -194,19 +222,20 @@ export class TourManager implements ITourManager {
   }
 
   private removeTooltip(): void {
-    if (this.tooltip) {
-      // Cleanup auto-update listeners
-      const cleanup = (this.tooltip as any)._cleanup;
-      if (cleanup) cleanup();
+  if (this.tooltip) {
+    // Cleanup auto-update listeners
+    const cleanup = (this.tooltip as any)._cleanup;
+    if (cleanup) cleanup();
 
-      this.tooltip.remove();
-      this.tooltip = null;
-    }
-    if (this.spotlight) {
-      this.spotlight.remove();
-      this.spotlight = null;
-    }
+    this.tooltip.remove();
+    this.tooltip = null;
   }
+  if (this.spotlight) {
+    // Cleanup spotlight listeners
+    const cleanup = (this.spotlight as any)._cleanup;
+    if (cleanup) cleanup();
+  }
+}
 
   private cleanup(): void {
     this.removeTooltip();
@@ -330,11 +359,11 @@ export class TourManager implements ITourManager {
   }
 
   private showCompletionMessage(): void {
-  this.removeTooltip();
+    this.removeTooltip();
 
-  const completion = document.createElement("div");
-  completion.className = "tour-completion";
-  completion.innerHTML = `
+    const completion = document.createElement("div");
+    completion.className = "tour-completion";
+    completion.innerHTML = `
     <div class="tour-completion-content">
       <div class="tour-tooltip-header">
         <button class="tour-close-btn" aria-label="Close tour">×</button>
@@ -345,23 +374,23 @@ export class TourManager implements ITourManager {
     </div>
   `;
 
-  document.body.appendChild(completion);
+    document.body.appendChild(completion);
 
-  // Add close button handler
-  const closeBtn = completion.querySelector('.tour-close-btn');
-  closeBtn?.addEventListener('click', () => {
-    completion.remove();
-    this.stop();
-  });
+    // Add close button handler
+    const closeBtn = completion.querySelector(".tour-close-btn");
+    closeBtn?.addEventListener("click", () => {
+      completion.remove();
+      this.stop();
+    });
 
-  // Animate in
-  requestAnimationFrame(() => {
-    completion.classList.add("active");
-  });
+    // Animate in
+    requestAnimationFrame(() => {
+      completion.classList.add("active");
+    });
 
-  setTimeout(() => {
-    completion.remove();
-    this.stop();
-  }, 3000);
-}
+    setTimeout(() => {
+      completion.remove();
+      this.stop();
+    }, 3000);
+  }
 }
