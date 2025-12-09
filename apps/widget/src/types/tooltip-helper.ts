@@ -19,6 +19,21 @@ export class TooltipHelper {
       return;
     }
 
+    // Check if target element (spotlight) is larger than viewport
+    const targetRect = targetElement.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    const targetLargerThanViewport = 
+      targetRect.width > viewportWidth/2 || 
+      targetRect.height > viewportHeight;
+
+    // If target is larger than viewport, center the tooltip
+    if (targetLargerThanViewport) {
+      this.centerTooltip(tooltip, 200);
+      return;
+    }
+
     try {
       const { x, y, placement } = await computePosition(targetElement, tooltip, {
         placement: "bottom",
@@ -27,7 +42,7 @@ export class TooltipHelper {
           offset(16),
           inline(),
           autoPlacement({ padding: 12 }),
-          shift({ padding: 12 }),
+          shift({ padding: 15 }),
         ],
       });
 
@@ -44,7 +59,7 @@ export class TooltipHelper {
     }
   }
 
-  private static centerTooltip(tooltip: HTMLElement): void {
+  private static centerTooltip(tooltip: HTMLElement, offset: number = 0): void {
     tooltip.style.position = "fixed";
     tooltip.style.visibility = "hidden";
     document.body.appendChild(tooltip);
@@ -62,8 +77,8 @@ export class TooltipHelper {
     );
 
     Object.assign(tooltip.style, {
-      top: `${top}px`,
-      left: `${left}px`,
+      top: `${top + offset}px`,
+      left: `${left + offset/2}px`,
       visibility: "visible",
     });
 
