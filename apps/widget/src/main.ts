@@ -82,21 +82,21 @@ class TourWidget {
           title: '🎯 Main Navigation',
           description: 'This is where you\'ll find all the main features.',
           target: '#nav-menu',
-        //   position: 'bottom'
+          position: 'bottom'
         },
         {
           id: 'step-3',
           title: '✨ Create New',
           description: 'Click here to create your first project.',
           target: '#create-button',
-        //   position: 'left'
+          position: 'left'
         },
         {
           id: 'step-4',
           title: '📊 Dashboard',
           description: 'View your analytics and insights here.',
           target: '#dashboard-link',
-        //   position: 'right'
+          position: 'right'
         },
         {
           id: 'step-5',
