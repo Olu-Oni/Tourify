@@ -37,14 +37,14 @@
 
 /* Spotlight */
 .tour-spotlight {
-  position: fixed;
+  position: absolute;
   border: 3px solid #3b82f6;
   border-radius: 8px;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
   z-index: 999999;
   pointer-events: none;
   transition: all 0.3s ease;
-  animation: tour-pulse 2s infinite;
+  /* animation: tour-pulse 2s infinite; */
 }
 
 /* Tooltip Container */
@@ -238,7 +238,7 @@
 }
 
 /* Responsive Design */
-@media (max-width: 640px) {
+@media (max-width: 400px) {
   .tour-tooltip-content {
     max-width: calc(100vw - 40px);
     min-width: calc(100vw - 40px);

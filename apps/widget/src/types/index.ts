@@ -8,7 +8,7 @@ export interface TourStep {
   title: string;
   description: string;
   target: string; // CSS selector
-  position: TooltipPosition;
+  position?: TooltipPosition;
 }
 
 export interface TourData {

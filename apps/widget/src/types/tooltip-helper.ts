@@ -97,12 +97,13 @@ export class TooltipHelper {
   static createAutoUpdate(
     tooltip: HTMLElement,
     targetElement: HTMLElement,
-    position: TooltipPosition
+    position?: TooltipPosition
   ): () => void {
-    const update = () => this.positionTooltip(tooltip, targetElement, position);
+    const update = () => {
+        this.positionTooltip(tooltip, targetElement, position)};
 
     // Update on scroll and resize
-    window.addEventListener('scroll', update, true);
+    // window.addEventListener('scroll', update, true);
     window.addEventListener('resize', update);
 
     // Return cleanup function

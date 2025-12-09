@@ -136,6 +136,8 @@ export class TourManager implements ITourManager {
     this.overlay.className = "tour-overlay";
     document.body.appendChild(this.overlay);
 
+    document.body.style.overflow = 'hidden';
+
     // Trigger reflow for animation
     void this.overlay.offsetWidth;
 
@@ -155,10 +157,10 @@ export class TourManager implements ITourManager {
 
     this.spotlight = document.createElement("div");
     this.spotlight.className = "tour-spotlight";
-    this.spotlight.style.top = `${rect.top}px`;
-    this.spotlight.style.left = `${rect.left}px`;
-    this.spotlight.style.width = `${rect.width + 20}px`;
-    this.spotlight.style.height = `${rect.height + 20}px`;
+    this.spotlight.style.top = `${rect.top -10}px`;
+    this.spotlight.style.left = `${rect.left -10}px`;
+    this.spotlight.style.width = `${rect.width + 14}px`;
+    this.spotlight.style.height = `${rect.height + 16}px`;
 
     document.body.appendChild(this.spotlight);
   }
