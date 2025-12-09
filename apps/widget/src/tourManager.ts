@@ -286,7 +286,9 @@ export class TourManager implements ITourManager {
             </div>
           </div>
           <div class="tour-tooltip-actions">
-            <button class="tour-btn tour-btn-secondary tour-skip-btn">Skip Tour</button>
+            ${
+              // "<button class="tour-btn tour-btn-secondary tour-skip-btn">Skip Tour</button>" 
+              ""} 
             ${
               !isFirst
                 ? '<button class="tour-btn tour-btn-secondary tour-prev-btn">← Back</button>'
