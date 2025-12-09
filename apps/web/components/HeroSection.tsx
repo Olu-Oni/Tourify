@@ -1,5 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { useState } from "react";
 import { IoMdArrowForward } from "react-icons/io";
 
@@ -43,10 +44,13 @@ export default function HeroSection() {
               through your app. No coding required, analytics included.
             </p>
             <div className="flex flex-wrap gap-4">
-              <button className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold flex items-center gap-2 transition duration-300 cursor-pointer">
-                Get Started Free
-                <IoMdArrowForward className="w-5 h-5" />
-              </button>
+              <Link href="/login">
+                <button className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold flex items-center gap-2 transition duration-300 cursor-pointer">
+                  Get Started Free
+                  <IoMdArrowForward className="w-5 h-5" />
+                </button>
+              </Link>
+
               <button className="px-8 py-4 border border-white/20 hover:bg-white/10 text-white rounded-lg font-semibold transition duration-300 cursor-pointer">
                 View Demo
               </button>
