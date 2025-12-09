@@ -200,7 +200,7 @@ export default function AnalyticsView() {
         <nav className="space-y-2">
           <button
             onClick={() => setActiveTab('tours')}
-            className={`w-full text-left px-4 py-3 rounded-lg transition ${
+            className={`w-full text-left px-4 py-3 cursor-pointer rounded-lg transition ${
               activeTab === 'tours' ? 'bg-purple-600' : 'hover:bg-slate-800'
             }`}
           >
@@ -209,7 +209,7 @@ export default function AnalyticsView() {
           </button>
           <button
             onClick={() => setActiveTab('analytics')}
-            className={`w-full text-left px-4 py-3 rounded-lg transition ${
+            className={`w-full text-left px-4 py-3 cursor-pointer rounded-lg transition ${
               activeTab === 'analytics' ? 'bg-purple-600' : 'hover:bg-slate-800'
             }`}
           >
@@ -218,7 +218,7 @@ export default function AnalyticsView() {
           </button>
           <button
             onClick={() => setActiveTab('settings')}
-            className={`w-full text-left px-4 py-3 rounded-lg transition ${
+            className={`w-full text-left px-4 py-3 cursor-pointer rounded-lg transition ${
               activeTab === 'settings' ? 'bg-purple-600' : 'hover:bg-slate-800'
             }`}
           >
@@ -267,7 +267,7 @@ export default function AnalyticsView() {
               <h2 className="text-2xl font-bold text-slate-900">Your Tours</h2>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center gap-2 transition"
+                className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center gap-2 transition cursor-pointer"
               >
                 <Plus className="w-5 h-5" />
                 Create Tour
