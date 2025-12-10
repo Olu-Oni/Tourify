@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { IoMdArrowForward } from "react-icons/io";
 
-export default function DemoSection() {
+export default function CtaSection() {
   return (
     <section className="py-20 px-6 bg-linear-to-r from-purple-600 to-pink-600">
       <div className="max-w-4xl mx-auto text-center">

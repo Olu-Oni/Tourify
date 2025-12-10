@@ -1,4 +1,4 @@
-import DemoSection from "@/components/DemoSection";
+import CtaSection from "@/components/CtaSection";
 import Features from "@/components/Features";
 import HeroSection from "@/components/HeroSection";
 import HowItWorks from "@/components/HowItWorks";
@@ -9,7 +9,7 @@ export default function Home() {
       <HeroSection />
       <Features />
       <HowItWorks />
-      <DemoSection />
+      <CtaSection />
     </div>
   );
 }
