@@ -13,7 +13,8 @@ export class TourManager implements ITourManager {
   private config: TourConfig;
   private analytics: IAnalytics;
   private currentStep: number = 0;
-  private isActive: boolean = false;
+  public isActive: boolean = false;
+  private siteKey: string;
 
   // UI Elements
   private overlay: HTMLElement | null = null;
@@ -28,11 +29,11 @@ export class TourManager implements ITourManager {
   // Cleanup functions
   private cleanupFunctions: (() => void)[] = [];
 
-  constructor(tourData: TourData, config: TourConfig, analytics: IAnalytics) {
+  constructor(tourData: TourData, config: TourConfig, analytics: IAnalytics, siteKey: string) {
     this.tourData = tourData;
     this.config = config;
     this.analytics = analytics;
-
+    this.siteKey = siteKey;
     this.loadProgress();
   }
 
