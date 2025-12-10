@@ -272,8 +272,12 @@ class TourWidget {
       this.siteKey
     );
 
+    // Only auto-start if configured to do so
     if (this.config?.autoStart) {
+      console.log('🚀 Auto-starting tour');
       this.tourManager.start();
+    } else {
+      console.log('⏸️ Tour initialized but not auto-started. Use button or call start() to begin.');
     }
 
     this.analytics!.track("tour_initialized", {
@@ -351,7 +355,14 @@ function initWidget(): void {
   // Auto-attach to start button if it exists
   const startButton = document.getElementById('tourify-start-btn');
   if (startButton) {
-    startButton.addEventListener('click', () => widget.start());
+    startButton.addEventListener('click', () => {
+      console.log('▶️ Start button clicked');
+      widget.start();
+    });
+    // Show the start button if autoStart is false
+    if (config.autoStart === false) {
+      startButton.style.display = 'block';
+    }
   }
 }
 
