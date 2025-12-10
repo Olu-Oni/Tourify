@@ -14,6 +14,10 @@
         --border: #e2e8f0;
       }
 
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
           sans-serif;
@@ -26,65 +30,16 @@
       }
 
       .dashboard-container {
-        max-width: 1400px;
+        max-width: 1600px;
         margin: 0 auto;
-        display: grid;
-        grid-template-columns: 250px 1fr;
-        gap: 24px;
-        margin-top: 30px;
-      }
-
-      /* Sidebar */
-      .sidebar {
-        background: white;
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        height: fit-content;
-        position: sticky;
-        top: 30px;
-      }
-
-      .logo {
-        font-size: 24px;
-        font-weight: 800;
-        color: var(--primary);
-        margin-bottom: 32px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .nav-menu {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-      }
-
-      .nav-item {
-        padding: 12px 16px;
-        border-radius: 10px;
-        margin-bottom: 8px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-
-      .nav-item:hover {
-        background: #f1f5f9;
-      }
-
-      .nav-item.active {
-        background: var(--primary);
-        color: white;
+        width: 100%;
       }
 
       /* Main Content */
       .main-content {
         display: grid;
         gap: 24px;
+        width: 100%;
       }
 
       .header {
@@ -95,11 +50,20 @@
         padding: 24px;
         border-radius: 16px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        flex-wrap: wrap;
+        gap: 16px;
       }
 
       .header h1 {
         margin: 0;
         color: var(--dark);
+        font-size: clamp(20px, 4vw, 28px);
+      }
+
+      .header p {
+        margin: 4px 0 0 0;
+        color: #64748b;
+        font-size: clamp(14px, 2vw, 16px);
       }
 
       .user-profile {
@@ -110,12 +74,17 @@
         background: #f8fafc;
         border-radius: 12px;
         cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .user-profile:hover {
+        background: #e2e8f0;
       }
 
       /* Stats Grid */
       .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 20px;
       }
 
@@ -124,6 +93,12 @@
         padding: 24px;
         border-radius: 16px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.15);
       }
 
       .stat-header {
@@ -131,12 +106,29 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .stat-header h3 {
+        margin: 0;
+        font-size: clamp(14px, 2vw, 16px);
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
       .stat-value {
-        font-size: 32px;
+        font-size: clamp(28px, 5vw, 36px);
         font-weight: 700;
         color: var(--dark);
+        margin: 8px 0;
+      }
+
+      .stat-card p {
+        font-size: 14px;
+        color: #64748b;
+        margin: 0;
       }
 
       .stat-change {
@@ -144,6 +136,7 @@
         border-radius: 20px;
         font-size: 14px;
         font-weight: 600;
+        white-space: nowrap;
       }
 
       .positive {
@@ -162,12 +155,27 @@
         padding: 24px;
         border-radius: 16px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        overflow-x: auto;
+      }
+
+      .recent-orders h2 {
+        margin: 0 0 16px 0;
+      }
+
+      .orders-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 16px;
       }
 
       table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 16px;
+        min-width: 600px;
       }
 
       th,
@@ -180,6 +188,11 @@
       th {
         background: #f8fafc;
         font-weight: 600;
+        font-size: 14px;
+      }
+
+      td {
+        font-size: 14px;
       }
 
       /* Buttons */
@@ -192,7 +205,10 @@
         transition: all 0.3s ease;
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 8px;
+        font-size: 14px;
+        white-space: nowrap;
       }
 
       .btn-primary {
@@ -234,15 +250,22 @@
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
       }
 
-      .filter-row {
+      .filter-section h2 {
+        margin: 0 0 20px 0;
         display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .filter-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 16px;
-        flex-wrap: wrap;
       }
 
       .filter-group {
-        flex: 1;
-        min-width: 200px;
+        display: flex;
+        flex-direction: column;
       }
 
       label {
@@ -250,6 +273,10 @@
         margin-bottom: 8px;
         font-weight: 600;
         color: var(--dark);
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
       }
 
       select,
@@ -258,7 +285,14 @@
         padding: 12px 16px;
         border: 2px solid var(--border);
         border-radius: 10px;
-        font-size: 16px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+      }
+
+      select:focus,
+      input:focus {
+        outline: none;
+        border-color: var(--primary);
       }
 
       /* Analytics Section */
@@ -267,6 +301,13 @@
         padding: 24px;
         border-radius: 16px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+
+      .analytics-section h2 {
+        margin: 0 0 20px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
       .chart-container {
@@ -278,6 +319,8 @@
         align-items: center;
         justify-content: center;
         color: #64748b;
+        text-align: center;
+        padding: 20px;
       }
 
       /* Scroll Test */
@@ -291,16 +334,12 @@
       }
 
       /* Utility */
-      .icon {
-        width: 20px;
-        height: 20px;
-      }
-
       .badge {
         padding: 4px 12px;
         border-radius: 20px;
         font-size: 12px;
         font-weight: 600;
+        display: inline-block;
       }
 
       .badge-success {
@@ -321,31 +360,75 @@
       .test-section {
         margin: 20px 0;
         padding: 20px;
-        background: #f3f4f6;
-        border-radius: 8px;
+        background: white;
+        border-radius: 16px;
         display: flex;
         justify-content: center;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
       }
 
       #tourify-restart-btn {
-        background: #c13bf6;
-        margin: 0px auto;
-        padding: 16px 30px;
+        background: #c13bf6 !important;
+        padding: 16px 30px !important;
         color: white;
         border: none;
-        border-radius: 6px;
+        border-radius: 10px;
         cursor: pointer;
-        margin: 10px;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s ease;
+      }
+
+      #tourify-restart-btn:hover {
+        background: #a020e0 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(193, 59, 246, 0.4);
       }
 
       /* Responsive */
-      @media (max-width: 1024px) {
-        .dashboard-container {
+      @media (max-width: 768px) {
+        body {
+          padding: 12px;
+        }
+
+        .header {
+          padding: 16px;
+        }
+
+        .stat-card {
+          padding: 16px;
+        }
+
+        .filter-row {
           grid-template-columns: 1fr;
         }
 
-        .sidebar {
-          position: static;
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .btn {
+          width: 100%;
+        }
+
+        .orders-header {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        table {
+          font-size: 12px;
+        }
+
+        th,
+        td {
+          padding: 12px 8px;
+        }
+      }
+
+      @media (min-width: 769px) and (max-width: 1200px) {
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
         }
       }
     </style>
@@ -356,41 +439,6 @@
   </head>
   <body>
     <div class="dashboard-container">
-      <!-- Sidebar -->
-      <!-- <aside class="sidebar">
-        <div class="logo">
-          <i class="fas fa-store"></i>
-          ShopHub Pro
-        </div>
-        <ul class="nav-menu">
-          <li class="nav-item active" id="dashboard-nav">
-            <i class="fas fa-tachometer-alt"></i>
-            Dashboard
-          </li>
-          <li class="nav-item" id="products-nav">
-            <i class="fas fa-box"></i>
-            Products
-          </li>
-          <li class="nav-item" id="orders-nav">
-            <i class="fas fa-shopping-cart"></i>
-            Orders
-          </li>
-          <li class="nav-item" id="customers-nav">
-            <i class="fas fa-users"></i>
-            Customers
-          </li>
-          <li class="nav-item" id="analytics-nav">
-            <i class="fas fa-chart-line"></i>
-            Analytics
-          </li>
-          <li class="nav-item" id="settings-nav">
-            <i class="fas fa-cog"></i>
-            Settings
-          </li>
-        </ul>
-      </aside> -->
-
-      <!-- Main Content -->
       <main class="main-content">
         <!-- Header -->
         <header class="header">
@@ -405,7 +453,7 @@
             <img
               src="https://i.pravatar.cc/40?img=1"
               alt="Sarah Johnson"
-              style="border-radius: 50%"
+              style="border-radius: 50%; width: 40px; height: 40px"
             />
             <div>
               <strong>Sarah Johnson</strong>
@@ -416,7 +464,9 @@
         </header>
 
         <div class="test-section restart-section">
-          <button id="tourify-restart-btn">Restart Tour</button>
+          <button id="tourify-restart-btn">
+            <i class="fas fa-play"></i> Start Dashboard Tour
+          </button>
         </div>
 
         <!-- Stats Grid -->
@@ -476,7 +526,7 @@
         <!-- Quick Actions -->
         <section class="filter-section">
           <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
-          <div class="filter-row" style="margin-top: 20px">
+          <div class="filter-row">
             <button class="btn btn-primary" id="new-product-btn">
               <i class="fas fa-plus"></i> Add New Product
             </button>
@@ -494,16 +544,10 @@
 
         <!-- Recent Orders -->
         <section class="recent-orders">
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-            "
-          >
+          <div class="orders-header">
             <h2><i class="fas fa-history"></i> Recent Orders</h2>
             <button class="btn btn-outline" id="view-all-orders">
-              View All Orders
+              <i class="fas fa-list"></i> View All Orders
             </button>
           </div>
           <table>
@@ -518,31 +562,31 @@
             </thead>
             <tbody>
               <tr>
-                <td>#ORD-7842</td>
+                <td><strong>#ORD-7842</strong></td>
                 <td>Michael Chen</td>
                 <td>Today, 10:42 AM</td>
-                <td>$249.99</td>
+                <td><strong>$249.99</strong></td>
                 <td><span class="badge badge-success">Completed</span></td>
               </tr>
               <tr>
-                <td>#ORD-7841</td>
+                <td><strong>#ORD-7841</strong></td>
                 <td>Jessica Williams</td>
                 <td>Today, 09:15 AM</td>
-                <td>$129.50</td>
+                <td><strong>$129.50</strong></td>
                 <td><span class="badge badge-warning">Processing</span></td>
               </tr>
               <tr>
-                <td>#ORD-7840</td>
+                <td><strong>#ORD-7840</strong></td>
                 <td>Robert Garcia</td>
                 <td>Today, 08:03 AM</td>
-                <td>$89.99</td>
+                <td><strong>$89.99</strong></td>
                 <td><span class="badge badge-danger">Pending</span></td>
               </tr>
               <tr>
-                <td>#ORD-7839</td>
+                <td><strong>#ORD-7839</strong></td>
                 <td>Amanda Lee</td>
                 <td>Yesterday, 4:20 PM</td>
-                <td>$342.75</td>
+                <td><strong>$342.75</strong></td>
                 <td><span class="badge badge-success">Completed</span></td>
               </tr>
             </tbody>
@@ -552,11 +596,11 @@
         <!-- Analytics Chart -->
         <section class="analytics-section">
           <h2><i class="fas fa-chart-bar"></i> Sales Analytics</h2>
-          <div class="filter-row" style="margin-top: 20px">
+          <div class="filter-row">
             <div class="filter-group">
-              <label for="time-period"
-                ><i class="fas fa-calendar"></i> Time Period</label
-              >
+              <label for="time-period">
+                <i class="fas fa-calendar"></i> Time Period
+              </label>
               <select id="time-period">
                 <option>Last 7 days</option>
                 <option selected>Last 30 days</option>
@@ -565,9 +609,9 @@
               </select>
             </div>
             <div class="filter-group">
-              <label for="metric"
-                ><i class="fas fa-chart-line"></i> Metric</label
-              >
+              <label for="metric">
+                <i class="fas fa-chart-line"></i> Metric
+              </label>
               <select id="metric">
                 <option selected>Revenue</option>
                 <option>Orders</option>
@@ -576,9 +620,9 @@
               </select>
             </div>
             <div class="filter-group">
-              <label for="chart-type"
-                ><i class="fas fa-chart-pie"></i> Chart Type</label
-              >
+              <label for="chart-type">
+                <i class="fas fa-chart-pie"></i> Chart Type
+              </label>
               <select id="chart-type">
                 <option selected>Line Chart</option>
                 <option>Bar Chart</option>
@@ -587,13 +631,22 @@
             </div>
           </div>
           <div class="chart-container" id="sales-chart">
-            <div style="text-align: center">
+            <div>
               <i
                 class="fas fa-chart-line"
-                style="font-size: 48px; margin-bottom: 16px; color: #94a3b8"
+                style="
+                  font-size: 48px;
+                  margin-bottom: 16px;
+                  color: #94a3b8;
+                  display: block;
+                "
               ></i>
-              <p>Sales chart visualization would appear here</p>
-              <p style="font-size: 14px">(Interactive chart component)</p>
+              <p style="margin: 8px 0">
+                Sales chart visualization would appear here
+              </p>
+              <p style="font-size: 14px; margin: 0">
+                (Interactive chart component)
+              </p>
             </div>
           </div>
           <div style="text-align: center; margin-top: 20px">
@@ -627,58 +680,23 @@
     <script>
       // Simple interactivity for the demo
       document.addEventListener("DOMContentLoaded", function () {
-        // Make navigation items clickable
-        document.querySelectorAll(".nav-item").forEach((item) => {
-          item.addEventListener("click", function () {
-            document
-              .querySelectorAll(".nav-item")
-              .forEach((i) => i.classList.remove("active"));
-            this.classList.add("active");
-          });
-        });
-
         // Button click handlers
-        document
-          .getElementById("new-product-btn")
-          .addEventListener("click", function () {
-            alert("Adding new product... (Demo)");
-          });
+        const buttons = {
+          "new-product-btn": "Adding new product...",
+          "run-report-btn": "Generating sales report...",
+          "view-alerts-btn": "Showing alerts...",
+          "discount-btn": "Creating discount code...",
+          "view-all-orders": "Showing all orders...",
+          "update-chart-btn": "Updating chart with new data...",
+          "scroll-test-button": "Scroll test button clicked!",
+        };
 
-        document
-          .getElementById("run-report-btn")
-          .addEventListener("click", function () {
-            alert("Generating sales report... (Demo)");
-          });
-
-        document
-          .getElementById("view-alerts-btn")
-          .addEventListener("click", function () {
-            alert("Showing alerts... (Demo)");
-          });
-
-        document
-          .getElementById("discount-btn")
-          .addEventListener("click", function () {
-            alert("Creating discount code... (Demo)");
-          });
-
-        document
-          .getElementById("view-all-orders")
-          .addEventListener("click", function () {
-            alert("Showing all orders... (Demo)");
-          });
-
-        document
-          .getElementById("update-chart-btn")
-          .addEventListener("click", function () {
-            alert("Updating chart with new data... (Demo)");
-          });
-
-        document
-          .getElementById("scroll-test-button")
-          .addEventListener("click", function () {
-            alert("Scroll test button clicked!");
-          });
+        Object.entries(buttons).forEach(([id, message]) => {
+          const btn = document.getElementById(id);
+          if (btn) {
+            btn.addEventListener("click", () => alert(message + " (Demo)"));
+          }
+        });
       });
     </script>
   </body>

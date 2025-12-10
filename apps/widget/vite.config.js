@@ -15,14 +15,18 @@ export default defineConfig({
         entryFileNames: "tourify-widget.js",
         assetFileNames: "tourify-widget.[ext]",
         inlineDynamicImports: true,
+        // Ensure the IIFE is named and accessible
+        name: "TourifyWidget",
       },
     },
     minify: "terser",
     terserOptions: {
       compress: {
-        drop_console: true,
+        drop_console: false, // Keep console logs for now to debug
         drop_debugger: true,
       },
+      // Preserve function names for debugging
+      keep_fnames: true,
     },
     copyPublicDir: true,
   },

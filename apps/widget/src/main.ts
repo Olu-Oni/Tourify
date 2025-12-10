@@ -326,68 +326,57 @@ class TourWidget {
   }
 }
 
-async function loadEmbedConfig(slug: string): Promise<Partial<TourConfig> | null> {
-  try {
-    const { supabase } = await import('./supabase');
-    
-    const { data, error } = await supabase
-      .from('embeds')
-      .select('*')
-      .eq('slug', slug)
-      .eq('public', true)
-      .single();
-    
-    if (error || !data) {
-      return null;
-    }
-    
-    // Merge config from database with defaults
-    return {
-      tourId: data.tour_id,
-      autoStart: data.config?.autoStart ?? true,
-      showAvatar: data.config?.showAvatar ?? true,
-      theme: data.config?.theme || 'light',
-      apiUrl: data.config?.apiUrl,
-      ...data.config,
-    };
-  } catch (error) {
-    console.error('Failed to load embed config:', error);
-    return null;
+// ============================================================================
+// CRITICAL: Capture document.currentScript IMMEDIATELY at top of file
+// This MUST be before ANY functions, imports, or async operations
+// ============================================================================
+const SCRIPT_TAG = (() => {
+  // Try document.currentScript first (works in IIFE)
+  if (document.currentScript) {
+    return document.currentScript as HTMLScriptElement;
   }
-}
+  
+  // Fallback: search for our script in the DOM
+  const scripts = document.querySelectorAll('script');
+  return Array.from(scripts).find(script => {
+    const src = script.getAttribute('src') || '';
+    return (
+      script.hasAttribute('data-tour-id') ||
+      src.includes('tourify-widget')
+    );
+  }) as HTMLScriptElement | null;
+})();
+
+// Log immediately to verify capture
+console.log('📦 Tourify Widget - Script Tag Captured:', SCRIPT_TAG);
+console.log('📦 Tourify Widget - Attributes:', SCRIPT_TAG ? {
+  'data-tour-id': SCRIPT_TAG.getAttribute('data-tour-id'),
+  'data-auto-start': SCRIPT_TAG.getAttribute('data-auto-start'),
+  'data-show-avatar': SCRIPT_TAG.getAttribute('data-show-avatar'),
+  'data-theme': SCRIPT_TAG.getAttribute('data-theme'),
+  'src': SCRIPT_TAG.getAttribute('src'),
+} : 'NO SCRIPT TAG FOUND');
 
 async function initWidget(): Promise<void> {
-  // document.currentScript is null in modules, so we need to find the script tag
-  let scriptTag = document.currentScript as HTMLScriptElement | null;
-  
-  // Fallback for ES modules: find script tag with our attributes
-  if (!scriptTag) {
-    const scripts = document.querySelectorAll('script[type="module"]');
-    scriptTag = Array.from(scripts).find(
-      script => script.hasAttribute('data-tour-id') || 
-               script.hasAttribute('data-embed-slug') ||
-               script.getAttribute('src')?.includes('main.ts')
-    ) as HTMLScriptElement || null;
-  }
-
   let config: Partial<TourConfig>;
   
-  // Check if using embed-slug (embeds table)
-  const embedSlug = scriptTag?.getAttribute("data-embed-slug");
-  
-  if (embedSlug) {
-    // Fetch config from embeds table
-    console.log('📦 Loading embed config:', embedSlug);
-    const embedConfig = await loadEmbedConfig(embedSlug);
+  // PRIORITY 1: Check for global config object
+  if ((window as any).TOURIFY_CONFIG) {
+    console.log('✅ Using window.TOURIFY_CONFIG');
+    config = (window as any).TOURIFY_CONFIG;
+  } 
+  // PRIORITY 2: Use the captured script tag
+  else {
+    const scriptTag = SCRIPT_TAG;
     
-    if (embedConfig) {
-      config = embedConfig;
+    if (scriptTag) {
+      console.log('✅ Using captured script tag attributes');
+      console.log('📋 Tour ID:', scriptTag.getAttribute("data-tour-id"));
     } else {
-      console.warn(`Embed not found: ${embedSlug}, using defaults`);
-      config = { tourId: "default" };
+      console.warn('⚠️ No script tag found! Using defaults. Consider using window.TOURIFY_CONFIG instead.');
     }
-  } else {
-    // Use direct attributes (current approach)
+
+    // Use direct attributes from captured script tag
     config = {
       tourId: scriptTag?.getAttribute("data-tour-id") || "default",
       autoStart: scriptTag?.getAttribute("data-auto-start") !== "false",
@@ -396,6 +385,8 @@ async function initWidget(): Promise<void> {
       apiUrl: scriptTag?.getAttribute("data-api-url") || "https://your-api.com",
     };
   }
+  
+  console.log('⚙️ Final widget config:', config);
 
   const widget = new TourWidget();
   widget.init(config);
