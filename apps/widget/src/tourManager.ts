@@ -19,7 +19,6 @@ export class TourManager implements ITourManager {
   private overlay: HTMLElement | null = null;
   private tooltip: HTMLElement | null = null;
   private spotlight: HTMLElement | null = null;
-  private avatar: TourAvatar | null = null;
   private avatarContainer: HTMLElement | null = null;
 
   // Event handlers
