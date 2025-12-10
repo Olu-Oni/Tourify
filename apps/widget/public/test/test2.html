@@ -318,6 +318,26 @@
         color: #991b1b;
       }
 
+      .test-section {
+        margin: 20px 0;
+        padding: 20px;
+        background: #f3f4f6;
+        border-radius: 8px;
+        display: flex;
+        justify-content: center;
+      }
+
+      #tourify-restart-btn {
+        background: #c13bf6;
+        margin: 0px auto;
+        padding: 16px 30px;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin: 10px;
+      }
+
       /* Responsive */
       @media (max-width: 1024px) {
         .dashboard-container {
@@ -337,7 +357,7 @@
   <body>
     <div class="dashboard-container">
       <!-- Sidebar -->
-      <aside class="sidebar">
+      <!-- <aside class="sidebar">
         <div class="logo">
           <i class="fas fa-store"></i>
           ShopHub Pro
@@ -368,7 +388,7 @@
             Settings
           </li>
         </ul>
-      </aside>
+      </aside> -->
 
       <!-- Main Content -->
       <main class="main-content">
@@ -394,6 +414,10 @@
             <i class="fas fa-chevron-down"></i>
           </div>
         </header>
+
+        <div class="test-section restart-section">
+          <button id="tourify-restart-btn">Restart Tour</button>
+        </div>
 
         <!-- Stats Grid -->
         <section class="stats-grid">
