@@ -46,7 +46,23 @@ class TourWidget {
   private async loadTourData(): Promise<void> {
     let tourData: TourData;
 
-    // Step 1: Try to fetch from API (only if real API URL provided)
+    // Step 1: Try to fetch from Supabase
+    try {
+      const { TourFetcher } = await import('./tourFetcher');
+      tourData = await TourFetcher.fetchTourById(this.config!.tourId) || 
+                 await TourFetcher.fetchTourBySlug(this.config!.tourId) ||
+                 null as any;
+      
+      if (tourData) {
+        console.log('✅ Loaded tour from Supabase:', tourData.id);
+        this.initializeTour(tourData);
+        return;
+      }
+    } catch (supabaseError) {
+      console.warn('Failed to fetch from Supabase:', supabaseError);
+    }
+
+    // Step 2: Try to fetch from custom API (only if real API URL provided)
     if (this.config?.apiUrl && !this.config.apiUrl.includes('your-api.com')) {
       try {
         tourData = await this.fetchTourFromAPI();
@@ -58,7 +74,7 @@ class TourWidget {
       }
     }
 
-    // Step 2: Try to get mock tour for the tourId
+    // Step 3: Try to get mock tour for the tourId
     const mockTour = this.getMockTourData(this.config!.tourId);
     if (mockTour) {
       console.log('📋 Using mock tour data:', mockTour.id);
@@ -67,7 +83,7 @@ class TourWidget {
       return;
     }
 
-    // Step 3: Fall back to "no tour assigned" message
+    // Step 4: Fall back to "no tour assigned" message
     console.log('ℹ️ No tour found for:', this.config!.tourId);
     tourData = this.getNoTourData();
     this.initializeTour(tourData);
@@ -152,14 +168,6 @@ class TourWidget {
               "This interactive tour will guide you through the key features of your e-commerce dashboard. Let's get started!",
             target: "body",
             position: "center",
-          },
-          {
-            id: "sidebar-navigation",
-            title: "📁 Navigation Menu",
-            description:
-              "Access all major sections of your store here. The Dashboard is currently selected, but you can quickly jump to Products, Orders, Customers, Analytics, or Settings.",
-            target: "#dashboard-nav",
-            position: "right",
           },
           {
             id: "revenue-overview",
@@ -318,7 +326,37 @@ class TourWidget {
   }
 }
 
-function initWidget(): void {
+async function loadEmbedConfig(slug: string): Promise<Partial<TourConfig> | null> {
+  try {
+    const { supabase } = await import('./supabase');
+    
+    const { data, error } = await supabase
+      .from('embeds')
+      .select('*')
+      .eq('slug', slug)
+      .eq('public', true)
+      .single();
+    
+    if (error || !data) {
+      return null;
+    }
+    
+    // Merge config from database with defaults
+    return {
+      tourId: data.tour_id,
+      autoStart: data.config?.autoStart ?? true,
+      showAvatar: data.config?.showAvatar ?? true,
+      theme: data.config?.theme || 'light',
+      apiUrl: data.config?.apiUrl,
+      ...data.config,
+    };
+  } catch (error) {
+    console.error('Failed to load embed config:', error);
+    return null;
+  }
+}
+
+async function initWidget(): Promise<void> {
   // document.currentScript is null in modules, so we need to find the script tag
   let scriptTag = document.currentScript as HTMLScriptElement | null;
   
@@ -326,17 +364,38 @@ function initWidget(): void {
   if (!scriptTag) {
     const scripts = document.querySelectorAll('script[type="module"]');
     scriptTag = Array.from(scripts).find(
-      script => script.hasAttribute('data-tour-id') || script.getAttribute('src')?.includes('main.ts')
+      script => script.hasAttribute('data-tour-id') || 
+               script.hasAttribute('data-embed-slug') ||
+               script.getAttribute('src')?.includes('main.ts')
     ) as HTMLScriptElement || null;
   }
 
-  const config: Partial<TourConfig> = {
-    tourId: scriptTag?.getAttribute("data-tour-id") || "default",
-    autoStart: scriptTag?.getAttribute("data-auto-start") !== "false",
-    showAvatar: scriptTag?.getAttribute("data-show-avatar") !== "false",
-    theme: (scriptTag?.getAttribute("data-theme") as TourTheme) || "light",
-    apiUrl: scriptTag?.getAttribute("data-api-url") || "https://your-api.com",
-  };
+  let config: Partial<TourConfig>;
+  
+  // Check if using embed-slug (embeds table)
+  const embedSlug = scriptTag?.getAttribute("data-embed-slug");
+  
+  if (embedSlug) {
+    // Fetch config from embeds table
+    console.log('📦 Loading embed config:', embedSlug);
+    const embedConfig = await loadEmbedConfig(embedSlug);
+    
+    if (embedConfig) {
+      config = embedConfig;
+    } else {
+      console.warn(`Embed not found: ${embedSlug}, using defaults`);
+      config = { tourId: "default" };
+    }
+  } else {
+    // Use direct attributes (current approach)
+    config = {
+      tourId: scriptTag?.getAttribute("data-tour-id") || "default",
+      autoStart: scriptTag?.getAttribute("data-auto-start") !== "false",
+      showAvatar: scriptTag?.getAttribute("data-show-avatar") !== "false",
+      theme: (scriptTag?.getAttribute("data-theme") as TourTheme) || "light",
+      apiUrl: scriptTag?.getAttribute("data-api-url") || "https://your-api.com",
+    };
+  }
 
   const widget = new TourWidget();
   widget.init(config);
