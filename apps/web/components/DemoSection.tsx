@@ -20,7 +20,7 @@ export default function DemoSection() {
             Join thousands of companies using Tourify to onboard their users
           </p>
 
-          <Link href="#">
+          <Link href="/login">
             <button className="px-8 py-4 bg-white text-purple-600 hover:bg-gray-100 rounded-lg font-semibold flex items-center gap-2 mx-auto transition duration-300 cursor-pointer">
               Start Free Trial
               <IoMdArrowForward className="w-5 h-5" />
