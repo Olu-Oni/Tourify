@@ -88,6 +88,24 @@
   /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
   border: 3px solid white;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Three.js canvas styling */
+.tour-avatar-mini canvas {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50%;
+}
+
+/* Fallback emoji styling */
+.tour-avatar-mini.avatar-fallback {
+  font-size: 24px;
+  color: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .tour-tooltip-header-content {
