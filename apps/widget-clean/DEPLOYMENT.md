@@ -136,6 +136,20 @@ scp -r dist/* user@your-server.com:/var/www/html/tourify/
 </script>
 ```
 
+## 🎨 Customization
+
+### Custom Avatar Model
+
+1. Replace `public/Chick.gltf` with your own GLTF model
+2. Rebuild: `npm run build`
+3. Or specify custom URL:
+
+```html
+<script 
+  src="https://your-cdn.com/tourify-widget.js"
+  data-model-url="https://your-cdn.com/custom-avatar.gltf">
+</script>
+```
 
 ### Custom API Endpoint
 

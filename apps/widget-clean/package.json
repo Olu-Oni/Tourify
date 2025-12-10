@@ -1,0 +1,29 @@
+{
+  "name": "tourify-widget",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/tourify-widget.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/three": "^0.181.0",
+    "terser": "^5.44.1",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.4",
+    "vite-plugin-css-injected-by-js": "^3.5.2",
+    "vite-plugin-dts": "^4.5.4"
+  },
+  "dependencies": {
+    "@floating-ui/dom": "^1.7.4",
+    "@tweenjs/tween.js": "^25.0.0",
+    "three": "^0.181.2"
+  }
+}
