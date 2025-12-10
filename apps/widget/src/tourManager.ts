@@ -28,11 +28,6 @@ export class TourManager implements ITourManager {
 
   // Cleanup functions
   private cleanupFunctions: (() => void)[] = [];
-  
-  // State management for preventing race conditions
-  private isTransitioning: boolean = false;
-  private tooltipTransitionPromise: Promise<void> | null = null;
-  private currentStepIndex: number = -1;
 
   constructor(tourData: TourData, config: TourConfig, analytics: IAnalytics) {
     this.tourData = tourData;
@@ -106,55 +101,27 @@ export class TourManager implements ITourManager {
   }
 
   private async showStep(stepIndex: number): Promise<void> {
-    // Prevent multiple simultaneous transitions
-    if (this.isTransitioning) {
-      if (this.tooltipTransitionPromise) {
-        await this.tooltipTransitionPromise;
-      }
+    const step = this.tourData.steps[stepIndex];
+
+    // Clean up previous tooltip and spotlight
+    await this.removeTooltip();
+    this.removeSpotlight();
+
+    let targetElement = document.querySelector(step.target) as HTMLElement;
+
+    if (!targetElement) {
+      targetElement = document.body;
+      console.warn(`Target element "${step.target}" not found`);
     }
 
-    this.isTransitioning = true;
-    
-    try {
-      const step = this.tourData.steps[stepIndex];
+    this.createSpotlight(targetElement);
+    this.scrollToElement(targetElement);
+    await this.createTooltip(step, targetElement, stepIndex);
 
-      let targetElement = document.querySelector(step.target) as HTMLElement;
-
-      if (!targetElement) {
-        targetElement = document.body;
-        console.warn(`Target element "${step.target}" not found`);
-      }
-
-      // Check if we can update existing tooltip instead of recreating
-      const canUpdateExisting = this.tooltip && this.currentStepIndex !== -1;
-      
-      if (canUpdateExisting) {
-        // Update existing tooltip content and position
-        await this.updateTooltip(step, targetElement, stepIndex);
-      } else {
-        // Clean up previous tooltip and spotlight with proper timing
-        this.tooltipTransitionPromise = this.removeTooltip();
-        await this.tooltipTransitionPromise;
-        this.removeSpotlight();
-
-        this.createSpotlight(targetElement);
-        this.scrollToElement(targetElement);
-        await this.createTooltip(step, targetElement, stepIndex);
-      }
-
-      // Update spotlight for new target
-      this.updateSpotlight(targetElement);
-      
-      this.currentStepIndex = stepIndex;
-
-      this.analytics.track("step_viewed", {
-        stepId: step.id,
-        stepNumber: stepIndex + 1,
-      });
-    } finally {
-      this.isTransitioning = false;
-      this.tooltipTransitionPromise = null;
-    }
+    this.analytics.track("step_viewed", {
+      stepId: step.id,
+      stepNumber: stepIndex + 1,
+    });
   }
 
   private createOverlay(): void {
@@ -300,53 +267,28 @@ export class TourManager implements ITourManager {
   }
 
   private async removeTooltip(): Promise<void> {
-    if (!this.tooltip) {
-      return;
-    }
-
-    const tooltipToRemove = this.tooltip;
-    this.tooltip = null; // Clear reference immediately to prevent race conditions
-
-    try {
+    if (this.tooltip) {
       // Remove event listeners first
       this.removeTooltipEvents();
       
       // Clean up any cleanup functions
-      this.cleanupFunctions.forEach(fn => {
-        try {
-          fn();
-        } catch (error) {
-          console.warn("Error during cleanup:", error);
-        }
-      });
+      this.cleanupFunctions.forEach(fn => fn());
       this.cleanupFunctions = [];
 
       // Clean up mini avatar if it exists
-      const miniAvatar = (tooltipToRemove as any)._miniAvatar;
+      const miniAvatar = (this.tooltip as any)._miniAvatar;
       if (miniAvatar && typeof miniAvatar.destroy === 'function') {
-        try {
-          miniAvatar.destroy();
-        } catch (error) {
-          console.warn("Error destroying mini avatar:", error);
-        }
+        miniAvatar.destroy();
       }
 
       // Remove tooltip with fade out animation
-      tooltipToRemove.classList.remove("active");
-      
-      // Wait for animation to complete
+      this.tooltip.classList.remove("active");
       await new Promise(resolve => setTimeout(resolve, 300));
       
-      // Ensure tooltip is still in DOM before removing
-      if (tooltipToRemove.parentNode) {
-        tooltipToRemove.remove();
+      if (this.tooltip.parentNode) {
+        this.tooltip.remove();
       }
-    } catch (error) {
-      console.warn("Error during tooltip removal:", error);
-      // Force remove if there's an error
-      if (tooltipToRemove.parentNode) {
-        tooltipToRemove.remove();
-      }
+      this.tooltip = null;
     }
   }
 
@@ -358,36 +300,11 @@ export class TourManager implements ITourManager {
   }
 
   private cleanup(): void {
-    // Reset transition state
-    this.isTransitioning = false;
-    this.tooltipTransitionPromise = null;
-    this.currentStepIndex = -1;
-    
     this.removeTooltipEvents();
     
     // Execute all cleanup functions
-    this.cleanupFunctions.forEach(fn => {
-      try {
-        fn();
-      } catch (error) {
-        console.warn("Error during cleanup:", error);
-      }
-    });
+    this.cleanupFunctions.forEach(fn => fn());
     this.cleanupFunctions = [];
-
-    // Clean up tooltip immediately
-    if (this.tooltip) {
-      this.tooltip.remove();
-      this.tooltip = null;
-    }
-
-    // Clean up any remaining tooltip elements in DOM
-    const existingTooltips = document.querySelectorAll('.tour-tooltip');
-    existingTooltips.forEach(tooltip => {
-      if (tooltip.parentNode) {
-        tooltip.remove();
-      }
-    });
 
     if (this.avatar) {
       this.avatar.destroy();
@@ -423,16 +340,8 @@ export class TourManager implements ITourManager {
     targetElement: HTMLElement,
     stepIndex: number
   ): Promise<void> {
-    // Ensure no existing tooltip elements are in the DOM
-    const existingTooltips = document.querySelectorAll('.tour-tooltip');
-    existingTooltips.forEach(tooltip => {
-      if (tooltip.parentNode) {
-        tooltip.remove();
-      }
-    });
-
-    // Small delay to ensure DOM is clean
-    await new Promise(resolve => setTimeout(resolve, 10));
+    // Wait a bit to ensure previous tooltip is fully removed
+    await new Promise(resolve => setTimeout(resolve, 50));
 
     this.tooltip = document.createElement("div");
     this.tooltip.className = "tour-tooltip";
@@ -537,130 +446,6 @@ export class TourManager implements ITourManager {
     requestAnimationFrame(() => {
       this.tooltip?.classList.add("active");
     });
-  }
-
-  private async updateTooltip(
-    step: TourStep,
-    targetElement: HTMLElement,
-    stepIndex: number
-  ): Promise<void> {
-    if (!this.tooltip) return;
-
-    const totalSteps = this.tourData.steps.length;
-    const isFirst = stepIndex === 0;
-    const isLast = stepIndex === totalSteps - 1;
-
-    // Clean up existing avatar
-    const existingMiniAvatar = (this.tooltip as any)._miniAvatar;
-    if (existingMiniAvatar && typeof existingMiniAvatar.destroy === 'function') {
-      try {
-        existingMiniAvatar.destroy();
-      } catch (error) {
-        console.warn("Error destroying existing mini avatar:", error);
-      }
-    }
-
-    // Update tooltip content
-    this.tooltip.innerHTML = `
-      <div class="tour-tooltip-content">
-        <div class="tour-tooltip-header">
-          <div class="tour-avatar-mini" id="avatar-container-${stepIndex}">
-            <!-- Avatar will be rendered here by Three.js -->
-          </div>
-          <div class="tour-tooltip-header-content">
-            <h3>${step.title}</h3>
-            <button class="tour-close-btn" aria-label="Close tour">×</button>
-          </div>
-        </div>
-        <p>${step.description}</p>
-        <div class="tour-tooltip-footer">
-          <div class="tour-progress">
-            <span>Step ${stepIndex + 1} of ${totalSteps}</span>
-            <div class="tour-progress-bar">
-              <div class="tour-progress-fill" style="width: ${
-                ((stepIndex + 1) / totalSteps) * 100
-              }%"></div>
-            </div>
-          </div>
-          <div class="tour-tooltip-actions">
-            ${
-              !isFirst
-                ? '<button class="tour-btn tour-btn-secondary tour-prev-btn">← Back</button>'
-                : ""
-            }
-            <button class="tour-btn tour-btn-primary tour-next-btn">
-              ${isLast ? "Finish" : "Next →"}
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-
-    // Wait for DOM to be ready
-    await new Promise(resolve => requestAnimationFrame(resolve));
-
-    // Set up new avatar
-    const avatarContainer = this.tooltip.querySelector(
-      ".tour-avatar-mini"
-    ) as HTMLElement;
-
-    if (avatarContainer && this.tooltip && this.config.showAvatar) {
-      try {
-        const modelUrl = (this.config as any).modelUrl;
-        const tooltipAvatar = new TourAvatar(avatarContainer, modelUrl);
-        
-        (this.tooltip as any)._miniAvatar = tooltipAvatar;
-        
-        setTimeout(() => {
-          if (stepIndex === 0) {
-            tooltipAvatar.peck();
-          } else if (isLast) {
-            tooltipAvatar.run();
-          } else {
-            tooltipAvatar.eat();
-          }
-        }, 300);
-      } catch (error) {
-        console.error("Failed to create avatar in tooltip:", error);
-        if (avatarContainer) {
-          avatarContainer.innerHTML = '👋';
-          avatarContainer.classList.add('avatar-fallback');
-        }
-      }
-    }
-
-    // Dynamically import TooltipHelper and reposition
-    const { TooltipHelper } = await import("./tooltip-helper");
-    
-    // Position the tooltip
-    await TooltipHelper.positionTooltip(
-      this.tooltip,
-      targetElement,
-      step.position
-    );
-
-    // Clean up old cleanup functions
-    this.cleanupFunctions.forEach(fn => {
-      try {
-        fn();
-      } catch (error) {
-        console.warn("Error during cleanup:", error);
-      }
-    });
-    this.cleanupFunctions = [];
-
-    // Set up new auto-update
-    const cleanup = TooltipHelper.createAutoUpdate(
-      this.tooltip,
-      targetElement,
-      step.position
-    );
-
-    // Store cleanup function
-    this.cleanupFunctions.push(cleanup);
-
-    // Reattach events
-    this.attachTooltipEvents();
   }
 
   private attachTooltipEvents(): void {
