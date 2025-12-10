@@ -26,6 +26,9 @@ export class TourManager implements ITourManager {
   private keyboardHandler: ((e: KeyboardEvent) => void) | null = null;
   private scrollPreventHandler: ((e: Event) => void) | null = null;
 
+  // Cleanup functions
+  private cleanupFunctions: (() => void)[] = [];
+
   constructor(tourData: TourData, config: TourConfig, analytics: IAnalytics) {
     this.tourData = tourData;
     this.config = config;
@@ -97,10 +100,12 @@ export class TourManager implements ITourManager {
     setTimeout(() => this.stop(), 1500);
   }
 
-  private showStep(stepIndex: number): void {
+  private async showStep(stepIndex: number): Promise<void> {
     const step = this.tourData.steps[stepIndex];
 
-    this.removeTooltip();
+    // Clean up previous tooltip and spotlight
+    await this.removeTooltip();
+    this.removeSpotlight();
 
     let targetElement = document.querySelector(step.target) as HTMLElement;
 
@@ -111,7 +116,7 @@ export class TourManager implements ITourManager {
 
     this.createSpotlight(targetElement);
     this.scrollToElement(targetElement);
-    void this.createTooltip(step, targetElement, stepIndex);
+    await this.createTooltip(step, targetElement, stepIndex);
 
     this.analytics.track("step_viewed", {
       stepId: step.id,
@@ -126,6 +131,7 @@ export class TourManager implements ITourManager {
 
     this.disableScroll();
 
+    // Force reflow
     void this.overlay.offsetWidth;
 
     requestAnimationFrame(() => {
@@ -197,13 +203,13 @@ export class TourManager implements ITourManager {
   }
 
   private updateSpotlight(targetElement: HTMLElement): void {
+    if (!this.spotlight) return;
+    
     const rect = targetElement.getBoundingClientRect();
-    if (this.spotlight) {
-      this.spotlight.style.top = `${rect.top - 10}px`;
-      this.spotlight.style.left = `${rect.left - 10}px`;
-      this.spotlight.style.width = `${rect.width + 14}px`;
-      this.spotlight.style.height = `${rect.height + 14}px`;
-    }
+    this.spotlight.style.top = `${rect.top - 10}px`;
+    this.spotlight.style.left = `${rect.left - 10}px`;
+    this.spotlight.style.width = `${rect.width + 14}px`;
+    this.spotlight.style.height = `${rect.height + 14}px`;
   }
 
   private setupSpotlightAutoUpdate(targetElement: HTMLElement): void {
@@ -212,11 +218,19 @@ export class TourManager implements ITourManager {
     window.addEventListener("resize", updateHandler);
     window.addEventListener("scroll", updateHandler);
 
+    // Store cleanup function
+    const cleanup = () => {
+      window.removeEventListener("resize", updateHandler);
+      window.removeEventListener("scroll", updateHandler);
+    };
+    
+    this.cleanupFunctions.push(cleanup);
+  }
+
+  private removeSpotlight(): void {
     if (this.spotlight) {
-      (this.spotlight as any)._cleanup = () => {
-        window.removeEventListener("resize", updateHandler);
-        window.removeEventListener("scroll", updateHandler);
-      };
+      this.spotlight.remove();
+      this.spotlight = null;
     }
   }
 
@@ -252,28 +266,45 @@ export class TourManager implements ITourManager {
     setTimeout(() => this.disableScroll(), 500);
   }
 
-  private removeTooltip(): void {
+  private async removeTooltip(): Promise<void> {
     if (this.tooltip) {
-      const cleanup = (this.tooltip as any)._cleanup;
-      if (cleanup) cleanup();
+      // Remove event listeners first
+      this.removeTooltipEvents();
+      
+      // Clean up any cleanup functions
+      this.cleanupFunctions.forEach(fn => fn());
+      this.cleanupFunctions = [];
 
+      // Clean up mini avatar if it exists
       const miniAvatar = (this.tooltip as any)._miniAvatar;
       if (miniAvatar && typeof miniAvatar.destroy === 'function') {
         miniAvatar.destroy();
       }
 
-      this.tooltip.remove();
+      // Remove tooltip with fade out animation
+      this.tooltip.classList.remove("active");
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      if (this.tooltip.parentNode) {
+        this.tooltip.remove();
+      }
       this.tooltip = null;
     }
-    
-    if (this.spotlight) {
-      const cleanup = (this.spotlight as any)._cleanup;
-      if (cleanup) cleanup();
+  }
+
+  private removeTooltipEvents(): void {
+    if (this.keyboardHandler) {
+      document.removeEventListener("keydown", this.keyboardHandler);
+      this.keyboardHandler = null;
     }
   }
 
   private cleanup(): void {
-    this.removeTooltip();
+    this.removeTooltipEvents();
+    
+    // Execute all cleanup functions
+    this.cleanupFunctions.forEach(fn => fn());
+    this.cleanupFunctions = [];
 
     if (this.avatar) {
       this.avatar.destroy();
@@ -299,14 +330,8 @@ export class TourManager implements ITourManager {
       setTimeout(() => {
         this.overlay?.remove();
         this.overlay = null;
-
         this.enableScroll();
       }, 300);
-    }
-
-    if (this.keyboardHandler) {
-      document.removeEventListener("keydown", this.keyboardHandler);
-      this.keyboardHandler = null;
     }
   }
 
@@ -315,6 +340,9 @@ export class TourManager implements ITourManager {
     targetElement: HTMLElement,
     stepIndex: number
   ): Promise<void> {
+    // Wait a bit to ensure previous tooltip is fully removed
+    await new Promise(resolve => setTimeout(resolve, 50));
+
     this.tooltip = document.createElement("div");
     this.tooltip.className = "tour-tooltip";
 
@@ -359,9 +387,10 @@ export class TourManager implements ITourManager {
 
     document.body.appendChild(this.tooltip);
 
-    await new Promise(resolve => setTimeout(resolve, 50));
+    // Wait for DOM to be ready
+    await new Promise(resolve => requestAnimationFrame(resolve));
 
-    const avatarContainer = this.tooltip?.querySelector(
+    const avatarContainer = this.tooltip.querySelector(
       ".tour-avatar-mini"
     ) as HTMLElement;
 
@@ -390,23 +419,30 @@ export class TourManager implements ITourManager {
       }
     }
 
-    const { TooltipHelper } = await import("./types/tooltip-helper");
+    // Dynamically import TooltipHelper
+    const { TooltipHelper } = await import("./tooltip-helper");
+    
+    // Position the tooltip
     await TooltipHelper.positionTooltip(
       this.tooltip,
       targetElement,
       step.position
     );
 
+    // Set up auto-update
     const cleanup = TooltipHelper.createAutoUpdate(
       this.tooltip,
       targetElement,
       step.position
     );
 
-    (this.tooltip as any)._cleanup = cleanup;
+    // Store cleanup function
+    this.cleanupFunctions.push(cleanup);
 
+    // Attach events
     this.attachTooltipEvents();
 
+    // Animate in
     requestAnimationFrame(() => {
       this.tooltip?.classList.add("active");
     });
@@ -417,15 +453,15 @@ export class TourManager implements ITourManager {
 
     const nextBtn = this.tooltip.querySelector(".tour-next-btn") as HTMLButtonElement;
     const prevBtn = this.tooltip.querySelector(".tour-prev-btn") as HTMLButtonElement;
-    const skipBtn = this.tooltip.querySelector(".tour-skip-btn") as HTMLButtonElement;
     const closeBtn = this.tooltip.querySelector(".tour-close-btn") as HTMLButtonElement;
 
     nextBtn?.addEventListener("click", () => this.next());
     prevBtn?.addEventListener("click", () => this.prev());
-    skipBtn?.addEventListener("click", () => this.skip());
     closeBtn?.addEventListener("click", () => this.skip());
 
     this.keyboardHandler = (e: KeyboardEvent) => {
+      if (!this.isActive) return;
+      
       if (e.key === "Escape") this.skip();
       if (e.key === "ArrowRight") this.next();
       if (e.key === "Enter") this.next();

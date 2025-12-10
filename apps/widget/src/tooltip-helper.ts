@@ -6,7 +6,7 @@ import {
   flip,
   limitShift, // Import limitShift
 } from "@floating-ui/dom";
-import { TooltipPosition } from "./index";
+import { TooltipPosition } from "./types/index";
 
 export class TooltipHelper {
   static async positionTooltip(

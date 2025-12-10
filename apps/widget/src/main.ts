@@ -15,8 +15,11 @@ class TourWidget {
       showAvatar: config.showAvatar ?? true,
       theme: config.theme || "light",
       apiUrl: config.apiUrl || "https://your-api.com",
+      apiKey: config.apiKey || "",
       ...config,
     };
+
+    this.applyTheme();
 
         this.analytics = new Analytics(this.config.tourId, {
       apiUrl: this.config.apiUrl,
@@ -24,6 +27,12 @@ class TourWidget {
     
     console.log(this.analytics)
     this.loadTourData();
+  }
+
+   private applyTheme(): void {
+    if (this.config?.theme) {
+      document.documentElement.setAttribute('data-tour-theme', this.config.theme);
+    }
   }
 
   private async loadTourData(): Promise<void> {
@@ -247,20 +256,45 @@ class TourWidget {
 }
 
 function initWidget(): void {
-  const scriptTag = document.currentScript as HTMLScriptElement | null;
+  let scriptTag: HTMLScriptElement | null = null;
 
+  // Try getting non-local script first
+  if (document.currentScript) {
+    scriptTag = document.currentScript as HTMLScriptElement;
+  } else {
+    // Fallback for module scripts in development
+    scriptTag = document.querySelector('script[type="module"][data-tour-id]') as HTMLScriptElement | null;
+    
+    // Fallback for production CDN script
+    if (!scriptTag) {
+      scriptTag = document.querySelector('script[src*="tourify-widget"][data-tour-id]') as HTMLScriptElement | null;
+    }
+  }
 
   const config: Partial<TourConfig> = {
     tourId: scriptTag?.getAttribute("data-tour-id") || "default",
-    autoStart: scriptTag?.getAttribute("data-auto-start") !== "true",
+    autoStart: scriptTag?.getAttribute("data-auto-start") === "true",
     showAvatar: scriptTag?.getAttribute("data-show-avatar") !== "false",
+    apiKey: scriptTag?.getAttribute("data-api-key") || "",
   };
+
+  console.log('Script tag:', scriptTag);
+  console.log('Tour ID:', scriptTag?.getAttribute("data-tour-id"));
+  console.log('Config:', config);
 
   const widget = new TourWidget();
   widget.init(config);
 
   (window as any).TourWidget = widget;
 }
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initWidget);
+} else {
+  initWidget();
+}
+
+(window as any).TourifyWidget = TourWidget;
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initWidget);
