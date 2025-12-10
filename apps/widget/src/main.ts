@@ -18,10 +18,11 @@ class TourWidget {
       ...config,
     };
 
-    this.analytics = new Analytics(this.config.tourId, {
+        this.analytics = new Analytics(this.config.tourId, {
       apiUrl: this.config.apiUrl,
     });
-
+    
+    console.log(this.analytics)
     this.loadTourData();
   }
 
@@ -248,9 +249,10 @@ class TourWidget {
 function initWidget(): void {
   const scriptTag = document.currentScript as HTMLScriptElement | null;
 
+
   const config: Partial<TourConfig> = {
     tourId: scriptTag?.getAttribute("data-tour-id") || "default",
-    autoStart: scriptTag?.getAttribute("data-auto-start") !== "false",
+    autoStart: scriptTag?.getAttribute("data-auto-start") !== "true",
     showAvatar: scriptTag?.getAttribute("data-show-avatar") !== "false",
   };
 
