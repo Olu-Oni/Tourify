@@ -1,4 +1,5 @@
-// analytics.ts - Track tour interactions
+// src/analytics.ts - Track tour interactions with Supabase
+import { supabase } from './supabase';
 
 interface AnalyticsEvent {
   eventName: string;
@@ -11,20 +12,26 @@ interface AnalyticsEvent {
 
 interface AnalyticsConfig {
   apiUrl?: string;
+  userId?: string;
 }
 
 export class Analytics {
   private tourId: string;
   private sessionId: string;
+  private userId: string | null;
   private events: AnalyticsEvent[];
-  // @ts-ignore - apiUrl will be used when API is implemented
   private apiUrl: string;
+  private useSupabase: boolean;
 
   constructor(tourId: string, config: AnalyticsConfig = {}) {
     this.tourId = tourId;
     this.sessionId = this.generateSessionId();
+    this.userId = config.userId || null;
     this.events = [];
     this.apiUrl = config.apiUrl || 'https://your-api.com/analytics';
+    
+    // Use Supabase if not using custom API
+    this.useSupabase = !config.apiUrl || config.apiUrl.includes('your-api.com');
   }
 
   private generateSessionId(): string {
@@ -50,6 +57,7 @@ export class Analytics {
       'tour_completed': 'background: #2196F3; color: white; padding: 2px 4px; border-radius: 3px;',
       'tour_skipped': 'background: #FF9800; color: white; padding: 2px 4px; border-radius: 3px;',
       'tour_stopped': 'background: #9E9E9E; color: white; padding: 2px 4px; border-radius: 3px;',
+      'tour_initialized': 'background: #9C27B0; color: white; padding: 2px 4px; border-radius: 3px;',
       'step_viewed': 'background: #673AB7; color: white; padding: 2px 4px; border-radius: 3px;',
       'step_completed': 'background: #009688; color: white; padding: 2px 4px; border-radius: 3px;',
     };
@@ -57,18 +65,44 @@ export class Analytics {
     const style = logStyles[eventName as keyof typeof logStyles] || 'background: #666; color: white; padding: 2px 4px; border-radius: 3px;';
     console.log(`%c📊 ${eventName}`, style, data);
     
-    // Send to API (implement later)
-    this.sendToAPI(event);
+    // Send to Supabase or API
+    if (this.useSupabase) {
+      this.sendToSupabase(event);
+    } else {
+      this.sendToAPI(event);
+    }
     
     // Store in localStorage for debugging
     this.saveToLocalStorage(event);
   }
 
-  // @ts-ignore - event parameter will be used when API is implemented
+  private async sendToSupabase(event: AnalyticsEvent): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('tour_analytics')
+        .insert({
+          tour_id: event.tourId,
+          step_id: event.stepId || null,
+          event_type: event.eventName,
+          session_id: event.sessionId,
+          user_id: this.userId,
+          payload: {
+            // url: event.url,
+            // timestamp: event.timestamp,
+            ...event
+          }
+        });
+
+      if (error) {
+        console.error('Supabase analytics error:', error);
+      }
+    } catch (error) {
+      console.error('Failed to send analytics to Supabase:', error);
+    }
+  }
+
   private async sendToAPI(event: AnalyticsEvent): Promise<void> {
     try {
-      // Uncomment when you have API endpoint
-      /*
       await fetch(this.apiUrl, {
         method: 'POST',
         headers: {
@@ -76,9 +110,8 @@ export class Analytics {
         },
         body: JSON.stringify(event)
       });
-      */
     } catch (error) {
-      console.error('Failed to send analytics:', error);
+      console.error('Failed to send analytics to API:', error);
     }
   }
 
