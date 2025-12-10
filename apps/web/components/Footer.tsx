@@ -26,12 +26,6 @@ export default function Footer() {
               >
                 Features
               </Link>
-              {/* <Link
-                href="#"
-                className="hover:text-white transition duration-300"
-              >
-                Pricing
-              </Link> */}
               <Link
                 href="/documentation"
                 className="hover:text-white transition duration-300"
@@ -44,48 +38,13 @@ export default function Footer() {
             <h4 className="font-semibold text-white mb-3">Company</h4>
             <div className="space-y-2 text-gray-400 flex flex-col">
               <Link
-                href="#"
+                href="/about"
                 className="hover:text-white transition duration-300"
               >
                 About
               </Link>
-              {/* <Link
-                href="#"
-                className="hover:text-white transition duration-300"
-              >
-                Blog
-              </Link>
-              <Link
-                href="#"
-                className="hover:text-white transition duration-300"
-              >
-                Careers
-              </Link> */}
             </div>
           </div>
-          {/* <div>
-            <h4 className="font-semibold text-white mb-3">Legal</h4>
-            <div className="space-y-2 text-gray-400 flex flex-col">
-              <Link
-                href="#"
-                className="hover:text-white transition duration-300"
-              >
-                Privacy
-              </Link>
-              <Link
-                href="#"
-                className="hover:text-white transition duration-300"
-              >
-                Terms
-              </Link>
-              <Link
-                href="#"
-                className="hover:text-white transition duration-300"
-              >
-                Security
-              </Link>
-            </div>
-          </div> */}
         </div>
         <div className="text-center text-gray-400 pt-8 border-t border-white/10">
           © 2025 Tourify. All rights reserved.

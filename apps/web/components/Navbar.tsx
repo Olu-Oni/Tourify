@@ -129,7 +129,7 @@ export default function Navbar() {
                 </button>
               ) : (
                 <Link href="/signin" className="w-[85%]">
-                  <button className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300">
+                  <button className="w-full text-white px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300">
                     Get Started
                   </button>
                 </Link>
