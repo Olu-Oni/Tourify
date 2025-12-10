@@ -442,7 +442,6 @@ export class TourManager implements ITourManager {
     // Attach events
     this.attachTooltipEvents();
 
-    // Animate in
     requestAnimationFrame(() => {
       this.tooltip?.classList.add("active");
     });
