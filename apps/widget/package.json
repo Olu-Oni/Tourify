@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@floating-ui/dom": "^1.7.4",
+    "@supabase/supabase-js": "^2.87.1",
     "@tweenjs/tween.js": "^25.0.0",
     "three": "^0.181.2"
   }
