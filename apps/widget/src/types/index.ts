@@ -38,7 +38,6 @@ export interface AnalyticsEvent {
   sessionId: string;
   timestamp: string;
   url: string;
-  userAgent: string;
   [key: string]: any;
 }
 

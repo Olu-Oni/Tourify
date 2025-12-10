@@ -40,10 +40,17 @@ export class TourManager implements ITourManager {
   start(): void {
     if (this.isActive) return;
 
-    // Check if tour was already completed/skipped
+    // Check if tour was already completed
     const isCompleted = localStorage.getItem(`tour_completed_${this.tourData.id}`);
     if (isCompleted === 'true') {
       console.log('Tour already completed. To restart, clear localStorage or use TourWidget.restart()');
+      return;
+    }
+
+    // Check if tour was already skipped
+    const isSkipped = localStorage.getItem(`tour_skipped_${this.tourData.id}`);
+    if (isSkipped === 'true') {
+      console.log('Tour was skipped. To restart, clear localStorage or use TourWidget.restart()');
       return;
     }
 
@@ -54,8 +61,9 @@ export class TourManager implements ITourManager {
   }
 
   restart(): void {
-    // Clear completion flag and progress
+    // Clear all flags and progress
     localStorage.removeItem(`tour_completed_${this.tourData.id}`);
+    localStorage.removeItem(`tour_skipped_${this.tourData.id}`);
     localStorage.removeItem(`tour_progress_${this.tourData.id}`);
     this.currentStep = 0;
     this.start();
@@ -105,10 +113,12 @@ export class TourManager implements ITourManager {
     this.analytics.track("tour_skipped", {
       tourId: this.tourData.id,
       atStep: this.currentStep + 1,
+      totalSteps: this.tourData.steps.length,
+      completedSteps: this.currentStep,
     });
     
-    // Mark tour as completed so it won't auto-start again
-    localStorage.setItem(`tour_completed_${this.tourData.id}`, 'true');
+    // Mark tour as SKIPPED (not completed)
+    localStorage.setItem(`tour_skipped_${this.tourData.id}`, 'true');
     
     void this.stop();
   }
@@ -125,9 +135,10 @@ export class TourManager implements ITourManager {
     this.analytics.track("tour_completed", {
       tourId: this.tourData.id,
       totalSteps: this.tourData.steps.length,
+      completedSteps: this.currentStep + 1,
     });
 
-    // Mark as completed
+    // Mark as COMPLETED
     localStorage.setItem(`tour_completed_${this.tourData.id}`, 'true');
     localStorage.removeItem(`tour_progress_${this.tourData.id}`);
 
