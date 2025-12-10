@@ -1,7 +1,7 @@
 import "./style.css";
 import { TourManager } from "./tourManager";
 import { Analytics } from "./analytics";
-import type { TourData, TourConfig } from "./types/index";
+import type { TourData, TourConfig, TourTheme } from "./types/index";
 
 class TourWidget {
   private tourManager: TourManager | null = null;
@@ -23,7 +23,6 @@ class TourWidget {
     });
 
     this.applyTheme();
-
     this.loadTourData();
   }
 
@@ -38,8 +37,22 @@ class TourWidget {
 
   private async loadTourData(): Promise<void> {
     try {
-      // use api call later
-      const tourData = this.getMockTourData(1);
+      let tourData: TourData;
+
+      // Try to fetch from API if API URL is not the default placeholder
+      if (this.config?.apiUrl && !this.config.apiUrl.includes('your-api.com')) {
+        try {
+          tourData = await this.fetchTourFromAPI();
+          console.log('✅ Loaded tour from API:', tourData.id);
+        } catch (apiError) {
+          console.warn('Failed to fetch from API, using sample data:', apiError);
+          tourData = this.getSampleTourData();
+        }
+      } else {
+        // Use sample data if no real API URL provided
+        tourData = this.getSampleTourData();
+        console.log('📋 Using sample tour data:', tourData.id);
+      }
 
       this.tourManager = new TourManager(
         tourData,
@@ -57,6 +70,69 @@ class TourWidget {
       });
     } catch (error) {
       console.error("Failed to load tour:", error);
+      // Fallback to default sample
+      this.loadFallbackTour();
+    }
+  }
+
+  private async fetchTourFromAPI(): Promise<TourData> {
+    if (!this.config?.apiUrl) {
+      throw new Error('No API URL provided');
+    }
+
+    const response = await fetch(`${this.config.apiUrl}/tours/${this.config.tourId}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // Ensure data has required structure
+    return {
+      id: data.id || this.config.tourId,
+      name: data.name || 'Tour',
+      steps: data.steps || [],
+    };
+  }
+
+  private getSampleTourData(): TourData {
+    const tourId = this.config?.tourId || 'default';
+    
+    // Map tour IDs to sample tours
+    const sampleTours: Record<string, number> = {
+      'tourify-default-1': 1,
+      'tourify-default-2': 2,
+    };
+
+    const tourNumber = sampleTours[tourId.toLowerCase()] || 1;
+    
+    const tourData = this.getMockTourData(tourNumber);
+    
+    // Override the ID with the requested tourId
+    return {
+      ...tourData,
+      id: this.config?.tourId || tourData.id,
+    };
+  }
+
+  private loadFallbackTour(): void {
+    console.log('🔄 Loading fallback tour');
+    const tourData = this.getMockTourData(1);
+    
+    this.tourManager = new TourManager(
+      tourData,
+      this.config!,
+      this.analytics!
+    );
+
+    if (this.config?.autoStart) {
+      this.tourManager.start();
     }
   }
 
@@ -64,7 +140,7 @@ class TourWidget {
     switch (num) {
       case 1:
         return {
-          id: this.config!.tourId,
+          id: this.config?.tourId || 'welcome-tour',
           name: "Welcome Tour",
           steps: [
             {
@@ -107,7 +183,7 @@ class TourWidget {
 
       case 2:
         return {
-          id: "ecommerce-onboarding",
+          id: this.config?.tourId || 'ecommerce-demo',
           name: "E-Commerce Dashboard Tour",
           steps: [
             {
@@ -210,14 +286,13 @@ class TourWidget {
         };
       default:
         return {
-          id: "ecommerce-onboarding",
-          name: "E-Commerce Dashboard Tour",
+          id: this.config?.tourId || 'default-tour',
+          name: "Default Tour",
           steps: [
             {
               id: "welcome-step",
-              title: "🚀 Welcome to Your Dashboard!",
-              description:
-                "This interactive tour will guide you through the key features of your e-commerce dashboard. Let's get started!",
+              title: "🚀 Welcome!",
+              description: "This is a default tour step.",
               target: "body",
               position: "center",
             },
@@ -260,19 +335,20 @@ function initWidget(): void {
     tourId: scriptTag?.getAttribute("data-tour-id") || "default",
     autoStart: scriptTag?.getAttribute("data-auto-start") !== "false",
     showAvatar: scriptTag?.getAttribute("data-show-avatar") !== "false",
+    theme: (scriptTag?.getAttribute("data-theme") as TourTheme) || "light", // Type assertion
+    apiUrl: scriptTag?.getAttribute("data-api-url") || "https://your-api.com",
   };
 
   const widget = new TourWidget();
   widget.init(config);
-  widget.restart();
 
   (window as any).TourWidget = widget;
+  (window as any).TourifyWidget = TourWidget;
 }
 
+// Auto-initialize
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initWidget);
 } else {
   initWidget();
 }
-
-(window as any).TourifyWidget = TourWidget;
