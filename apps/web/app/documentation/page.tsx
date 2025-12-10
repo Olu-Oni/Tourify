@@ -1,11 +1,11 @@
 "use client";
 
-import Sidebar from "@/components/Sidebar";
 import { useState } from "react";
 import { FiZap, FiCheck, FiCopy } from "react-icons/fi";
 import { IoCodeSharp } from "react-icons/io5";
 import { AiOutlineBarChart } from "react-icons/ai";
 import { FiBook, FiSettings } from "react-icons/fi";
+import DocumentationSidebar from "@/components/DocumentationSidebar";
 
 interface CodeBlockProps {
   code: string;
@@ -106,7 +106,7 @@ body: JSON.stringify({
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
       <div className="grid lg:grid-cols-4 gap-8">
-        <Sidebar />
+        <DocumentationSidebar />
 
         <main className="lg:col-span-3">
           <div className="bg-white rounded-xl border border-slate-200 p-8 mb-8">

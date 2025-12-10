@@ -10,5 +10,4 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   },
 });
 
-
 export const getSupabase = () => supabase;
