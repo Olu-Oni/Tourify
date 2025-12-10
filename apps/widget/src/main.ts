@@ -1,115 +1,227 @@
-import './style.css';
-import { TourManager } from './tourManager';
-import { Analytics } from './analytics';
-import type { TourData, TourConfig } from './types/index';
-
-console.log(' Main.ts loaded!');
+import "./style.css";
+import { TourManager } from "./tourManager";
+import { Analytics } from "./analytics";
+import type { TourData, TourConfig } from "./types/index";
 
 class TourWidget {
-  private tourManager: TourManager | null;
-  private analytics: Analytics | null;
-  private config: TourConfig | null;
+  private tourManager: TourManager | null = null;
+  private analytics: Analytics | null = null;
+  private config: TourConfig | null = null;
 
-  constructor() {
-    this.tourManager = null;
-    this.analytics = null;
-    this.config = null;
-  }
-
-  // Initialize widget
   init(config: Partial<TourConfig>): void {
     this.config = {
-      tourId: config.tourId || 'default',
-      autoStart: config.autoStart !== false,
-      showAvatar: config.showAvatar !== false,
-      theme: config.theme || 'light',
-      apiUrl: config.apiUrl || 'https://your-api.com',
-      ...config
+      tourId: config.tourId || "default",
+      autoStart: config.autoStart ?? true,
+      showAvatar: config.showAvatar ?? true,
+      theme: config.theme || "light",
+      apiUrl: config.apiUrl || "https://your-api.com",
+      ...config,
     };
 
-    // Initialize analytics
     this.analytics = new Analytics(this.config.tourId, {
-      apiUrl: this.config.apiUrl
+      apiUrl: this.config.apiUrl,
     });
 
-    // Fetch tour data and initialize
     this.loadTourData();
   }
 
   private async loadTourData(): Promise<void> {
     try {
-      // For now, use mock data (later fetch from API)
-      const tourData = this.getMockTourData();
-      
-      if (!this.analytics) {
-        throw new Error('Analytics not initialized');
-      }
+      // use api call later
+      const tourData = this.getMockTourData(1);
 
-      // Initialize tour manager
-      this.tourManager = new TourManager(tourData, this.config!, this.analytics);
+      this.tourManager = new TourManager(
+        tourData,
+        this.config!,
+        this.analytics!
+      );
 
-      // Auto-start if enabled
       if (this.config?.autoStart) {
         this.tourManager.start();
       }
 
-      // Track initialization
-      this.analytics.track('tour_initialized', {
+      this.analytics!.track("tour_initialized", {
         tourId: this.config!.tourId,
-        stepsCount: tourData.steps.length
+        stepsCount: tourData.steps.length,
       });
-
     } catch (error) {
-      console.error('Failed to load tour:', error);
+      console.error("Failed to load tour:", error);
     }
   }
 
-  // Mock data (for now)
-  private getMockTourData(): TourData {
-    return {
-      id: this.config!.tourId,
-      name: 'Welcome Tour',
-      steps: [
-        {
-          id: 'step-1',
-          title: '👋 Welcome!',
-          description: 'Let\'s take a quick tour to get you started.',
-          target: 'body',
-          position: 'center'
-        },
-        {
-          id: 'step-2',
-          title: '🎯 Main Navigation',
-          description: 'This is where you\'ll find all the main features.',
-          target: '#nav-menu',
-          position: 'bottom'
-        },
-        {
-          id: 'step-3',
-          title: '✨ Create New',
-          description: 'Click here to create your first project.',
-          target: '#create-button',
-          position: 'left'
-        },
-        {
-          id: 'step-4',
-          title: '📊 Dashboard',
-          description: 'View your analytics and insights here.',
-          target: '#dashboard-link',
-          position: 'right'
-        },
-        {
-          id: 'step-5',
-          title: '🎉 You\'re All Set!',
-          description: 'You\'re ready to get started. Enjoy!',
-          target: 'body',
-          position: 'center'
-        }
-      ]
-    };
+  private getMockTourData(num: number): TourData {
+    switch (num) {
+      case 1:
+        return {
+          id: this.config!.tourId,
+          name: "Welcome Tour",
+          steps: [
+            {
+              id: "step-1",
+              title: "👋 Welcome!",
+              description: "Let's take a quick tour to get you started.",
+              target: "body",
+              position: "center",
+            },
+            {
+              id: "step-2",
+              title: "🎯 Main Navigation",
+              description: "This is where you'll find all the main features.",
+              target: "#nav-menu",
+              position: "bottom",
+            },
+            {
+              id: "step-3",
+              title: "✨ Create New",
+              description: "Click here to create your first project.",
+              target: "#create-button",
+              position: "left",
+            },
+            {
+              id: "step-4",
+              title: "📊 Dashboard",
+              description: "View your analytics and insights here.",
+              target: "#dashboard-link",
+              position: "right",
+            },
+            {
+              id: "step-5",
+              title: "🎉 You're All Set!",
+              description: "You're ready to get started. Enjoy!",
+              target: "body",
+              position: "center",
+            },
+          ],
+        };
+
+      case 2:
+        return {
+          id: "ecommerce-onboarding",
+          name: "E-Commerce Dashboard Tour",
+          steps: [
+            {
+              id: "welcome-step",
+              title: "🚀 Welcome to Your Dashboard!",
+              description:
+                "This interactive tour will guide you through the key features of your e-commerce dashboard. Let's get started!",
+              target: "body",
+              position: "center",
+            },
+            {
+              id: "sidebar-navigation",
+              title: "📁 Navigation Menu",
+              description:
+                "Access all major sections of your store here. The Dashboard is currently selected, but you can quickly jump to Products, Orders, Customers, Analytics, or Settings.",
+              target: "#dashboard-nav",
+              position: "right",
+            },
+            {
+              id: "revenue-overview",
+              title: "💰 Revenue Tracking",
+              description:
+                "Monitor your daily revenue with real-time updates. This card shows today's earnings compared to yesterday, with percentage change indicators.",
+              target: "#revenue-card",
+              position: "bottom",
+            },
+            {
+              id: "orders-stats",
+              title: "📦 Order Management",
+              description:
+                "Keep track of new orders coming in. This shows current order count and pending items that need fulfillment.",
+              target: "#orders-card",
+              position: "bottom",
+            },
+            {
+              id: "quick-actions",
+              title: "⚡ Quick Actions",
+              description:
+                "Frequently used actions are available here for efficiency. Add products, generate reports, view alerts, or create discounts with one click.",
+              target: "#new-product-btn",
+              position: "bottom",
+            },
+            {
+              id: "recent-orders",
+              title: "🔄 Recent Orders",
+              description:
+                "Monitor your latest orders with status indicators. Quickly see which orders are completed, processing, or pending.",
+              target: ".recent-orders",
+              position: "top",
+            },
+            {
+              id: "view-all-orders",
+              title: "🔍 Detailed View",
+              description:
+                "Click here to see all orders with advanced filtering and search capabilities.",
+              target: "#view-all-orders",
+              position: "left",
+            },
+            {
+              id: "analytics-section",
+              title: "📊 Sales Analytics",
+              description:
+                "Visualize your store performance with interactive charts. Customize the time period, metrics, and chart type to gain insights.",
+              target: "#sales-chart",
+              position: "top",
+            },
+            {
+              id: "chart-controls",
+              title: "🎛️ Customize Analytics",
+              description:
+                "Adjust these controls to change what data appears in your analytics chart. Try different time periods and metrics!",
+              target: "#time-period",
+              position: "bottom",
+            },
+            {
+              id: "user-profile",
+              title: "👤 Your Account",
+              description:
+                "Access your profile settings, switch accounts, or log out from here.",
+              target: "#user-profile",
+              position: "left",
+            },
+            {
+              id: "scroll-test",
+              title: "🧪 Scroll Testing",
+              description:
+                "This section tests the tour widget's ability to handle scrolling and position elements correctly when they're not in the initial viewport.",
+              target: "#scroll-test-button",
+              position: "top",
+            },
+            {
+              id: "completion-step",
+              title: "🎉 Setup Complete!",
+              description:
+                "You're now familiar with your e-commerce dashboard! Remember, you can always restart this tour from the help menu. Need more help? Check our documentation or contact support.",
+              target: "body",
+              position: "center",
+            },
+          ],
+          // settings: {
+          //   showProgress: true,
+          //   allowSkip: true,
+          //   highlightTargets: true,
+          //   modalOverlay: true,
+          //   scrollPadding: 20
+          // }
+        };
+      default:
+        return {
+          id: "ecommerce-onboarding",
+          name: "E-Commerce Dashboard Tour",
+          steps: [
+            {
+              id: "welcome-step",
+              title: "🚀 Welcome to Your Dashboard!",
+              description:
+                "This interactive tour will guide you through the key features of your e-commerce dashboard. Let's get started!",
+              target: "body",
+              position: "center",
+            },
+          ],
+        };
+    }
   }
 
-  // Public API methods
   start(): void {
     this.tourManager?.start();
   }
@@ -133,63 +245,25 @@ class TourWidget {
   }
 }
 
-// IIFE for auto-initialization
-(function() {
-  'use strict';
+function initWidget(): void {
+  const scriptTag = document.currentScript as HTMLScriptElement | null;
 
-  console.log(' IIFE running');
-  console.log(' Document ready state:', document.readyState);
-  console.log(' Current script:', document.currentScript);
+  const config: Partial<TourConfig> = {
+    tourId: scriptTag?.getAttribute("data-tour-id") || "default",
+    autoStart: scriptTag?.getAttribute("data-auto-start") !== "false",
+    showAvatar: scriptTag?.getAttribute("data-show-avatar") !== "false",
+  };
 
-  // Prevent multiple initializations
-  if ((window as any).TourifyWidget) {
-    console.warn('TourWidget already initialized');
-    return;
-  }
+  const widget = new TourWidget();
+  widget.init(config);
 
-  // Auto-initialize from script tag attributes
-  function autoInit(): void {
-    console.log(' AutoInit called');
-    const scriptTag = document.currentScript as HTMLScriptElement | null;
-    
-    console.log('Script tag:', scriptTag);
-    
-    if (scriptTag) {
-      const tourId = scriptTag.getAttribute('data-tour-id');
-      const autoStart = scriptTag.getAttribute('data-auto-start') !== 'false';
-      const showAvatar = scriptTag.getAttribute('data-show-avatar') !== 'false';
-      
-      console.log('Config:', { tourId, autoStart, showAvatar });
-      
-      if (tourId) {
-        console.log('Initializing widget with tourId:', tourId);
-        const widget = new TourWidget();
-        widget.init({ tourId, autoStart, showAvatar });
-        (window as any).TourWidget = widget;
-      } else {
-        console.log('No tourId found, initializing with defaults');
-        const widget = new TourWidget();
-        widget.init({ tourId: 'default', autoStart: true });
-        (window as any).TourWidget = widget;
-      }
-    } else {
-      console.log('No script tag found, initializing manually');
-      const widget = new TourWidget();
-      widget.init({ tourId: 'default', autoStart: true });
-      (window as any).TourWidget = widget;
-    }
-  }
+  (window as any).TourWidget = widget;
+}
 
-  // Initialize when DOM is ready
-  if (document.readyState === 'loading') {
-    console.log(' Waiting for DOMContentLoaded...');
-    document.addEventListener('DOMContentLoaded', autoInit);
-  } else {
-    console.log(' DOM already loaded, running autoInit now');
-    autoInit();
-  }
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initWidget);
+} else {
+  initWidget();
+}
 
-  // Export for manual initialization
-  (window as any).TourifyWidget = TourWidget;
-
-})();
+(window as any).TourifyWidget = TourWidget;

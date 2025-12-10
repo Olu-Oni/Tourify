@@ -74,9 +74,50 @@
 /* Tooltip Header */
 .tour-tooltip-header {
   display: flex;
-  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.tour-avatar-mini {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  border: 3px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  display: flex;
   align-items: center;
-  margin-bottom: 12px;
+  justify-content: center;
+}
+
+/* Three.js canvas styling */
+.tour-avatar-mini canvas {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50%;
+}
+
+/* Fallback emoji styling */
+.tour-avatar-mini.avatar-fallback {
+  font-size: 24px;
+  color: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.tour-tooltip-header-content {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+}
+
+.tour-avatar-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .tour-tooltip-header h3 {

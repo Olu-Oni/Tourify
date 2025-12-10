@@ -18,6 +18,7 @@ export class Analytics {
   private tourId: string;
   private sessionId: string;
   private events: AnalyticsEvent[];
+  // @ts-ignore - apiUrl will be used when API is implemented
   private apiUrl: string;
 
   constructor(tourId: string, config: AnalyticsConfig = {}) {
@@ -55,6 +56,7 @@ export class Analytics {
     this.saveToLocalStorage(event);
   }
 
+  // @ts-ignore - event parameter will be used when API is implemented
   private async sendToAPI(event: AnalyticsEvent): Promise<void> {
     try {
       // Uncomment when you have API endpoint
