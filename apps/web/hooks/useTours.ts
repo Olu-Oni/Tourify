@@ -37,7 +37,9 @@ export function useTours(initial: Tour[] = []) {
           if (ev === "UPDATE") {
             toast.success(`Tour updated: ${record.name}`);
             setTours((prev) =>
-              prev.map((t) => (t.id === String(record.id) ? normalize(record) : t))
+              prev.map((t) =>
+                t.id === String(record.id) ? normalize(record) : t
+              )
             );
           }
 
@@ -98,7 +100,9 @@ export function useTours(initial: Tour[] = []) {
     const sup = getSupabase();
 
     if (!sup) {
-      setTours((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)));
+      setTours((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
+      );
       toast.success("Tour updated (local)");
       return;
     }
@@ -115,9 +119,7 @@ export function useTours(initial: Tour[] = []) {
       throw error;
     }
 
-    setTours((prev) =>
-      prev.map((t) => (t.id === id ? normalize(data) : t))
-    );
+    setTours((prev) => prev.map((t) => (t.id === id ? normalize(data) : t)));
   };
 
   const deleteTour = async (id: string) => {

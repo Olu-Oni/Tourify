@@ -9,3 +9,5 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     storage: typeof window !== "undefined" ? window.localStorage : undefined,
   },
 });
+
+export const getSupabase = () => supabase;
