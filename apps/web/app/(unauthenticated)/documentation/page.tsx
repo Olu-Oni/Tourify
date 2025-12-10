@@ -1,6 +1,5 @@
 "use client";
 
-import Sidebar from "@/components/Sidebar";
 import { useState } from "react";
 import { FiZap, FiCheck, FiCopy } from "react-icons/fi";
 import { IoCodeSharp } from "react-icons/io5";
