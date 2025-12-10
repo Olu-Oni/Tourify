@@ -15,23 +15,24 @@ class TourWidget {
       showAvatar: config.showAvatar ?? true,
       theme: config.theme || "light",
       apiUrl: config.apiUrl || "https://your-api.com",
-      apiKey: config.apiKey || "",
       ...config,
     };
 
-    this.applyTheme();
-
-        this.analytics = new Analytics(this.config.tourId, {
+    this.analytics = new Analytics(this.config.tourId, {
       apiUrl: this.config.apiUrl,
     });
-    
-    console.log(this.analytics)
+
+    this.applyTheme();
+
     this.loadTourData();
   }
 
-   private applyTheme(): void {
+  private applyTheme(): void {
     if (this.config?.theme) {
-      document.documentElement.setAttribute('data-tour-theme', this.config.theme);
+      document.documentElement.setAttribute(
+        "data-tour-theme",
+        this.config.theme
+      );
     }
   }
 
@@ -206,13 +207,6 @@ class TourWidget {
               position: "center",
             },
           ],
-          // settings: {
-          //   showProgress: true,
-          //   allowSkip: true,
-          //   highlightTargets: true,
-          //   modalOverlay: true,
-          //   scrollPadding: 20
-          // }
         };
       default:
         return {
@@ -248,6 +242,10 @@ class TourWidget {
     this.tourManager?.prev();
   }
 
+  restart(): void {
+    this.tourManager?.restart();
+  }
+
   destroy(): void {
     this.tourManager?.stop();
     this.tourManager = null;
@@ -256,34 +254,17 @@ class TourWidget {
 }
 
 function initWidget(): void {
-  let scriptTag: HTMLScriptElement | null = null;
-
-  // Try getting non-local script first
-  if (document.currentScript) {
-    scriptTag = document.currentScript as HTMLScriptElement;
-  } else {
-    // Fallback for module scripts in development
-    scriptTag = document.querySelector('script[type="module"][data-tour-id]') as HTMLScriptElement | null;
-    
-    // Fallback for production CDN script
-    if (!scriptTag) {
-      scriptTag = document.querySelector('script[src*="tourify-widget"][data-tour-id]') as HTMLScriptElement | null;
-    }
-  }
+  const scriptTag = document.currentScript as HTMLScriptElement | null;
 
   const config: Partial<TourConfig> = {
     tourId: scriptTag?.getAttribute("data-tour-id") || "default",
-    autoStart: scriptTag?.getAttribute("data-auto-start") === "true",
+    autoStart: scriptTag?.getAttribute("data-auto-start") !== "false",
     showAvatar: scriptTag?.getAttribute("data-show-avatar") !== "false",
-    apiKey: scriptTag?.getAttribute("data-api-key") || "",
   };
-
-  console.log('Script tag:', scriptTag);
-  console.log('Tour ID:', scriptTag?.getAttribute("data-tour-id"));
-  console.log('Config:', config);
 
   const widget = new TourWidget();
   widget.init(config);
+  widget.restart();
 
   (window as any).TourWidget = widget;
 }

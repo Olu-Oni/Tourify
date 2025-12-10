@@ -385,3 +385,139 @@
     color: var(--tour-text-secondary);
   }
 }
+
+/* Skip Confirmation Modal */
+.tour-skip-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000002;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.tour-skip-modal.active {
+  opacity: 1;
+}
+
+.tour-skip-modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+}
+
+.tour-skip-modal-content {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 300px;
+  width: calc(100% - 40px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.tour-skip-modal.active .tour-skip-modal-content {
+  transform: scale(1);
+}
+
+.tour-skip-modal-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.tour-skip-modal-content h3 {
+  margin: 0 0 12px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.tour-skip-modal-content p {
+  margin: 0 0 24px 0;
+  color: #6b7280;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.tour-skip-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.tour-skip-modal-actions .tour-btn {
+  flex: 1;
+  min-width: 120px;
+}
+
+.tour-btn-danger {
+  background: #dc2626;
+  color: white;
+}
+
+.tour-btn-danger:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+/* Dark Mode Support for Modal */
+@media (prefers-color-scheme: dark) {
+  .tour-skip-modal-content {
+    background: #1f2937;
+    color: #f9fafb;
+  }
+
+  .tour-skip-modal-content h3 {
+    color: #f9fafb;
+  }
+
+  .tour-skip-modal-content p {
+    color: #d1d5db;
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .tour-skip-modal-content {
+    padding: 24px;
+  }
+
+  .tour-skip-modal-icon {
+    font-size: 48px;
+  }
+
+  .tour-skip-modal-content h3 {
+    font-size: 20px;
+  }
+
+  .tour-skip-modal-actions {
+    flex-direction: column;
+  }
+
+  .tour-skip-modal-actions .tour-btn {
+    width: 100%;
+  }
+}
