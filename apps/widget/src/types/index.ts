@@ -1,7 +1,13 @@
 // tour widget type defs
-export type TooltipPosition = 'top' | 'bottom' | 'left' | 'right' | 'center' | 'auto';
+export type TooltipPosition =
+  | "top"
+  | "bottom"
+  | "left"
+  | "right"
+  | "center"
+  | "auto";
 
-export type TourTheme = 'light' | 'dark' | 'auto';
+export type TourTheme = "light" | "dark" | "auto";
 
 export interface TourStep {
   id: string;
@@ -23,6 +29,7 @@ export interface TourConfig {
   showAvatar?: boolean;
   theme?: TourTheme;
   apiUrl?: string;
+  apiKey?: string;
 }
 
 export interface AnalyticsEvent {
@@ -31,7 +38,6 @@ export interface AnalyticsEvent {
   sessionId: string;
   timestamp: string;
   url: string;
-  userAgent: string;
   [key: string]: any;
 }
 

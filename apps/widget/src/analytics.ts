@@ -6,7 +6,6 @@ interface AnalyticsEvent {
   sessionId: string;
   timestamp: string;
   url: string;
-  userAgent: string;
   [key: string]: any;
 }
 
@@ -39,15 +38,24 @@ export class Analytics {
       sessionId: this.sessionId,
       timestamp: new Date().toISOString(),
       url: window.location.href,
-      userAgent: navigator.userAgent,
       ...data
     };
 
     // Store locally
     this.events.push(event);
     
-    // Log to console (for development)
-    console.log('📊 Analytics:', eventName, data);
+    // Log to console with different colors for different events
+    const logStyles = {
+      'tour_started': 'background: #4CAF50; color: white; padding: 2px 4px; border-radius: 3px;',
+      'tour_completed': 'background: #2196F3; color: white; padding: 2px 4px; border-radius: 3px;',
+      'tour_skipped': 'background: #FF9800; color: white; padding: 2px 4px; border-radius: 3px;',
+      'tour_stopped': 'background: #9E9E9E; color: white; padding: 2px 4px; border-radius: 3px;',
+      'step_viewed': 'background: #673AB7; color: white; padding: 2px 4px; border-radius: 3px;',
+      'step_completed': 'background: #009688; color: white; padding: 2px 4px; border-radius: 3px;',
+    };
+    
+    const style = logStyles[eventName as keyof typeof logStyles] || 'background: #666; color: white; padding: 2px 4px; border-radius: 3px;';
+    console.log(`%c📊 ${eventName}`, style, data);
     
     // Send to API (implement later)
     this.sendToAPI(event);

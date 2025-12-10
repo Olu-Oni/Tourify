@@ -26,6 +26,9 @@ export class TourManager implements ITourManager {
   private keyboardHandler: ((e: KeyboardEvent) => void) | null = null;
   private scrollPreventHandler: ((e: Event) => void) | null = null;
 
+  // Cleanup functions
+  private cleanupFunctions: (() => void)[] = [];
+
   constructor(tourData: TourData, config: TourConfig, analytics: IAnalytics) {
     this.tourData = tourData;
     this.config = config;
@@ -37,15 +40,40 @@ export class TourManager implements ITourManager {
   start(): void {
     if (this.isActive) return;
 
+    // Check if tour was already completed
+    const isCompleted = localStorage.getItem(`tour_completed_${this.tourData.id}`);
+    if (isCompleted === 'true') {
+      console.log('Tour already completed. To restart, clear localStorage or use TourWidget.restart()');
+      return;
+    }
+
+    // Check if tour was already skipped
+    const isSkipped = localStorage.getItem(`tour_skipped_${this.tourData.id}`);
+    if (isSkipped === 'true') {
+      console.log('Tour was skipped. To restart, clear localStorage or use TourWidget.restart()');
+      return;
+    }
+
     this.isActive = true;
     this.createOverlay();
     this.showStep(this.currentStep);
     this.analytics.track("tour_started", { tourId: this.tourData.id });
   }
 
-  stop(): void {
+  restart(): void {
+    // Clear all flags and progress
+    localStorage.removeItem(`tour_completed_${this.tourData.id}`);
+    localStorage.removeItem(`tour_skipped_${this.tourData.id}`);
+    localStorage.removeItem(`tour_progress_${this.tourData.id}`);
+    this.currentStep = 0;
+    this.start();
+  }
+
+  async stop(): Promise<void> {
+    if (!this.isActive) return;
+    
     this.isActive = false;
-    this.cleanup();
+    await this.cleanup();
     this.saveProgress();
     this.analytics.track("tour_stopped", {
       tourId: this.tourData.id,
@@ -77,30 +105,111 @@ export class TourManager implements ITourManager {
   }
 
   skip(): void {
+    // Show confirmation modal
+    this.showSkipConfirmation();
+  }
+
+  private confirmSkip(): void {
     this.analytics.track("tour_skipped", {
       tourId: this.tourData.id,
       atStep: this.currentStep + 1,
+      totalSteps: this.tourData.steps.length,
+      completedSteps: this.currentStep,
     });
-    this.stop();
+    
+    // Mark tour as SKIPPED (not completed)
+    localStorage.setItem(`tour_skipped_${this.tourData.id}`, 'true');
+    
+    void this.stop();
   }
 
   complete(): void {
-    this.avatar?.run();
+    // Get the mini avatar from tooltip before cleanup
+    const miniAvatar = this.tooltip ? (this.tooltip as any)._miniAvatar : null;
+    
+    // Run celebration animation if avatar exists
+    if (miniAvatar && typeof miniAvatar.run === 'function') {
+      miniAvatar.run();
+    }
 
     this.analytics.track("tour_completed", {
       tourId: this.tourData.id,
       totalSteps: this.tourData.steps.length,
+      completedSteps: this.currentStep + 1,
     });
 
+    // Mark as COMPLETED
+    localStorage.setItem(`tour_completed_${this.tourData.id}`, 'true');
     localStorage.removeItem(`tour_progress_${this.tourData.id}`);
 
-    setTimeout(() => this.stop(), 1500);
+    // End tour after celebration animation
+    setTimeout(() => {
+      void this.stop();
+    }, 1500);
   }
 
-  private showStep(stepIndex: number): void {
+  private showSkipConfirmation(): void {
+    // Create modal backdrop
+    const modal = document.createElement("div");
+    modal.className = "tour-skip-modal";
+    modal.innerHTML = `
+      <div class="tour-skip-modal-backdrop"></div>
+      <div class="tour-skip-modal-content">
+        <h3>Skip Tutorial?</h3>
+        <p>Are you sure you want to skip this tour? You can always restart it later if needed.</p>
+        <div class="tour-skip-modal-actions">
+          <button class="tour-btn tour-btn-secondary tour-skip-cancel">Continue Tour</button>
+          <button class="tour-btn tour-btn-danger tour-skip-confirm">Yes, Skip</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Animate in
+    requestAnimationFrame(() => {
+      modal.classList.add("active");
+    });
+
+    // Add event listeners
+    const cancelBtn = modal.querySelector(".tour-skip-cancel") as HTMLButtonElement;
+    const confirmBtn = modal.querySelector(".tour-skip-confirm") as HTMLButtonElement;
+
+    const closeModal = () => {
+      modal.classList.remove("active");
+      setTimeout(() => {
+        modal.remove();
+      }, 300);
+    };
+
+    cancelBtn?.addEventListener("click", closeModal);
+    
+    confirmBtn?.addEventListener("click", () => {
+      closeModal();
+      setTimeout(() => {
+        this.confirmSkip();
+      }, 300);
+    });
+
+    // Close on backdrop click
+    const backdrop = modal.querySelector(".tour-skip-modal-backdrop");
+    backdrop?.addEventListener("click", closeModal);
+
+    // Close on Escape key
+    const escapeHandler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        closeModal();
+        document.removeEventListener("keydown", escapeHandler);
+      }
+    };
+    document.addEventListener("keydown", escapeHandler);
+  }
+
+  private async showStep(stepIndex: number): Promise<void> {
     const step = this.tourData.steps[stepIndex];
 
-    this.removeTooltip();
+    // Clean up previous tooltip
+    await this.removeTooltip();
 
     let targetElement = document.querySelector(step.target) as HTMLElement;
 
@@ -111,7 +220,7 @@ export class TourManager implements ITourManager {
 
     this.createSpotlight(targetElement);
     this.scrollToElement(targetElement);
-    void this.createTooltip(step, targetElement, stepIndex);
+    await this.createTooltip(step, targetElement, stepIndex);
 
     this.analytics.track("step_viewed", {
       stepId: step.id,
@@ -197,13 +306,13 @@ export class TourManager implements ITourManager {
   }
 
   private updateSpotlight(targetElement: HTMLElement): void {
+    if (!this.spotlight) return;
+    
     const rect = targetElement.getBoundingClientRect();
-    if (this.spotlight) {
-      this.spotlight.style.top = `${rect.top - 10}px`;
-      this.spotlight.style.left = `${rect.left - 10}px`;
-      this.spotlight.style.width = `${rect.width + 14}px`;
-      this.spotlight.style.height = `${rect.height + 14}px`;
-    }
+    this.spotlight.style.top = `${rect.top - 10}px`;
+    this.spotlight.style.left = `${rect.left - 10}px`;
+    this.spotlight.style.width = `${rect.width + 14}px`;
+    this.spotlight.style.height = `${rect.height + 14}px`;
   }
 
   private setupSpotlightAutoUpdate(targetElement: HTMLElement): void {
@@ -212,12 +321,12 @@ export class TourManager implements ITourManager {
     window.addEventListener("resize", updateHandler);
     window.addEventListener("scroll", updateHandler);
 
-    if (this.spotlight) {
-      (this.spotlight as any)._cleanup = () => {
-        window.removeEventListener("resize", updateHandler);
-        window.removeEventListener("scroll", updateHandler);
-      };
-    }
+    const cleanup = () => {
+      window.removeEventListener("resize", updateHandler);
+      window.removeEventListener("scroll", updateHandler);
+    };
+    
+    this.cleanupFunctions.push(cleanup);
   }
 
   private saveProgress(): void {
@@ -252,61 +361,87 @@ export class TourManager implements ITourManager {
     setTimeout(() => this.disableScroll(), 500);
   }
 
-  private removeTooltip(): void {
-    if (this.tooltip) {
-      const cleanup = (this.tooltip as any)._cleanup;
-      if (cleanup) cleanup();
+  private async removeTooltip(): Promise<void> {
+    if (!this.tooltip) return;
 
-      const miniAvatar = (this.tooltip as any)._miniAvatar;
-      if (miniAvatar && typeof miniAvatar.destroy === 'function') {
+    // Remove keyboard event listener first
+    this.removeTooltipEvents();
+
+    // Clean up mini avatar
+    const miniAvatar = (this.tooltip as any)._miniAvatar;
+    if (miniAvatar && typeof miniAvatar.destroy === 'function') {
+      try {
         miniAvatar.destroy();
+      } catch (error) {
+        console.error("Error destroying avatar:", error);
       }
-
-      this.tooltip.remove();
-      this.tooltip = null;
     }
+
+    // Fade out animation
+    this.tooltip.classList.remove("active");
+    await new Promise(resolve => setTimeout(resolve, 300));
     
-    if (this.spotlight) {
-      const cleanup = (this.spotlight as any)._cleanup;
-      if (cleanup) cleanup();
+    // Remove from DOM
+    if (this.tooltip && this.tooltip.parentNode) {
+      this.tooltip.remove();
+    }
+    this.tooltip = null;
+  }
+
+  private removeTooltipEvents(): void {
+    if (this.keyboardHandler) {
+      document.removeEventListener("keydown", this.keyboardHandler);
+      this.keyboardHandler = null;
     }
   }
 
-  private cleanup(): void {
-    this.removeTooltip();
+  private async cleanup(): Promise<void> {
+    // Remove tooltip first (includes its cleanup)
+    await this.removeTooltip();
+    
+    // Remove keyboard events
+    this.removeTooltipEvents();
+    
+    // Execute all cleanup functions (spotlight listeners, etc)
+    this.cleanupFunctions.forEach(fn => {
+      try {
+        fn();
+      } catch (error) {
+        console.error("Cleanup error:", error);
+      }
+    });
+    this.cleanupFunctions = [];
 
-    if (this.avatar) {
-      this.avatar.destroy();
-      this.avatar = null;
-    }
-
+    // Clean up avatar container if exists
     if (this.avatarContainer) {
       this.avatarContainer.style.opacity = "0";
       this.avatarContainer.style.transform = "scale(0.8)";
       setTimeout(() => {
-        this.avatarContainer?.remove();
+        if (this.avatarContainer && this.avatarContainer.parentNode) {
+          this.avatarContainer.remove();
+        }
         this.avatarContainer = null;
       }, 300);
     }
 
+    // Remove spotlight
     if (this.spotlight) {
       this.spotlight.remove();
       this.spotlight = null;
     }
 
+    // Remove overlay last
     if (this.overlay) {
       this.overlay.classList.remove("active");
-      setTimeout(() => {
-        this.overlay?.remove();
-        this.overlay = null;
-
-        this.enableScroll();
-      }, 300);
-    }
-
-    if (this.keyboardHandler) {
-      document.removeEventListener("keydown", this.keyboardHandler);
-      this.keyboardHandler = null;
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      if (this.overlay && this.overlay.parentNode) {
+        this.overlay.remove();
+      }
+      this.overlay = null;
+      
+      // Re-enable scrolling
+      this.enableScroll();
     }
   }
 
@@ -315,6 +450,9 @@ export class TourManager implements ITourManager {
     targetElement: HTMLElement,
     stepIndex: number
   ): Promise<void> {
+    // Ensure previous tooltip is fully removed
+    await new Promise(resolve => setTimeout(resolve, 50));
+
     this.tooltip = document.createElement("div");
     this.tooltip.className = "tour-tooltip";
 
@@ -359,9 +497,9 @@ export class TourManager implements ITourManager {
 
     document.body.appendChild(this.tooltip);
 
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise(resolve => requestAnimationFrame(resolve));
 
-    const avatarContainer = this.tooltip?.querySelector(
+    const avatarContainer = this.tooltip.querySelector(
       ".tour-avatar-mini"
     ) as HTMLElement;
 
@@ -390,7 +528,8 @@ export class TourManager implements ITourManager {
       }
     }
 
-    const { TooltipHelper } = await import("./types/tooltip-helper");
+    const { TooltipHelper } = await import("./tooltip-helper");
+    
     await TooltipHelper.positionTooltip(
       this.tooltip,
       targetElement,
@@ -403,7 +542,7 @@ export class TourManager implements ITourManager {
       step.position
     );
 
-    (this.tooltip as any)._cleanup = cleanup;
+    this.cleanupFunctions.push(cleanup);
 
     this.attachTooltipEvents();
 
@@ -417,19 +556,24 @@ export class TourManager implements ITourManager {
 
     const nextBtn = this.tooltip.querySelector(".tour-next-btn") as HTMLButtonElement;
     const prevBtn = this.tooltip.querySelector(".tour-prev-btn") as HTMLButtonElement;
-    const skipBtn = this.tooltip.querySelector(".tour-skip-btn") as HTMLButtonElement;
     const closeBtn = this.tooltip.querySelector(".tour-close-btn") as HTMLButtonElement;
 
-    nextBtn?.addEventListener("click", () => this.next());
-    prevBtn?.addEventListener("click", () => this.prev());
-    skipBtn?.addEventListener("click", () => this.skip());
-    closeBtn?.addEventListener("click", () => this.skip());
+    // Use arrow functions to preserve 'this' context
+    const handleNext = () => this.next();
+    const handlePrev = () => this.prev();
+    const handleClose = () => this.skip();
+
+    nextBtn?.addEventListener("click", handleNext);
+    prevBtn?.addEventListener("click", handlePrev);
+    closeBtn?.addEventListener("click", handleClose);
 
     this.keyboardHandler = (e: KeyboardEvent) => {
+      if (!this.isActive) return;
+      
       if (e.key === "Escape") this.skip();
-      if (e.key === "ArrowRight") this.next();
-      if (e.key === "Enter") this.next();
-      if (e.key === "ArrowLeft") this.prev();
+      else if (e.key === "ArrowRight") this.next();
+      else if (e.key === "Enter") this.next();
+      else if (e.key === "ArrowLeft") this.prev();
     };
 
     document.addEventListener("keydown", this.keyboardHandler);

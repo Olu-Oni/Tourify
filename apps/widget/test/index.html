@@ -1,52 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tour Widget Test</title>
-  <style>
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      margin: 0;
-      padding: 20px;
-      min-height: 200vh;
-    }
-    .test-section {
-      margin: 40px 0;
-      padding: 20px;
-      background: #f3f4f6;
-      border-radius: 8px;
-    }
-    button {
-      padding: 12px 24px;
-      background: #3b82f6;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin: 10px;
-    }
-  </style>
-</head>
-<body>
-  <h1>Tour Widget Test Page</h1>
-  
-  <div class="test-section">
-    <h2 id="nav-menu">Navigation Section</h2>
-    <p>This is where the tour will point</p>
-  </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tour Widget Test</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        margin: 0;
+        padding: 20px;
+        min-height: 200vh;
+      }
+      .test-section {
+        margin: 40px 0;
+        padding: 20px;
+        background: #f3f4f6;
+        border-radius: 8px;
+      }
+      button {
+        padding: 12px 24px;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Tour Widget Test Page</h1>
 
-  <div class="test-section">
-    <button id="create-button">Create Button</button>
-    <button id="dashboard-link">Dashboard</button>
-  </div>
+    <div class="test-section">
+      <h2 id="nav-menu">Navigation Section</h2>
+      <p>This is where the tour will point</p>
+    </div>
 
-  <div class="test-section" style="margin-top: 100vh;">
-    <h2>Scroll Test Section</h2>
-    <p>Test positioning when scrolled</p>
-  </div>
+    <div class="test-section">
+      <button id="create-button">Create Button</button>
+      <button id="dashboard-link">Dashboard</button>
+    </div>
 
-  <!-- Load the widget -->
-  <script type="module" src="/src/main.ts"></script>
-</body>
+    <div class="test-section" style="margin-top: 100vh">
+      <h2>Scroll Test Section</h2>
+      <p>Test positioning when scrolled</p>
+    </div>
+
+    <!-- Load the widget -->
+    <script
+      type="module"
+      src="/src/main.ts"
+      data-tour-id="test-tour"
+      data-auto-start="true"
+      data-api-key="user_api_key_abc123"
+      
+    ></script>
+  </body>
 </html>
