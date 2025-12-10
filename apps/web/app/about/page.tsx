@@ -247,9 +247,11 @@ export default function AboutPage() {
               experiences
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
-              <button className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition cursor-pointer">
-                Start Free Trial
-              </button>
+              <Link href="/login">
+                <button className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition cursor-pointer">
+                  Start Free Trial
+                </button>
+              </Link>
 
               <Link href="/documentation">
                 <button className="px-8 py-4 border border-white/20 hover:bg-white/10 text-white rounded-lg font-semibold transition cursor-pointer">
