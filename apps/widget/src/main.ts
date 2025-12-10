@@ -22,7 +22,18 @@ class TourWidget {
       apiUrl: this.config.apiUrl,
     });
 
+    this.applyTheme();
+
     this.loadTourData();
+  }
+
+  private applyTheme(): void {
+    if (this.config?.theme) {
+      document.documentElement.setAttribute(
+        "data-tour-theme",
+        this.config.theme
+      );
+    }
   }
 
   private async loadTourData(): Promise<void> {
@@ -196,13 +207,6 @@ class TourWidget {
               position: "center",
             },
           ],
-          // settings: {
-          //   showProgress: true,
-          //   allowSkip: true,
-          //   highlightTargets: true,
-          //   modalOverlay: true,
-          //   scrollPadding: 20
-          // }
         };
       default:
         return {
@@ -238,6 +242,10 @@ class TourWidget {
     this.tourManager?.prev();
   }
 
+  restart(): void {
+    this.tourManager?.restart();
+  }
+
   destroy(): void {
     this.tourManager?.stop();
     this.tourManager = null;
@@ -256,6 +264,7 @@ function initWidget(): void {
 
   const widget = new TourWidget();
   widget.init(config);
+  widget.restart();
 
   (window as any).TourWidget = widget;
 }
