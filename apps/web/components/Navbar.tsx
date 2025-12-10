@@ -4,16 +4,32 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiMenu, FiX } from "react-icons/fi";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import useUser from "@/hooks/useUser";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const user = useUser();
 
   const isActive = (path: string) =>
     pathname === path
       ? "text-white font-semibold"
       : "text-gray-300 hover:text-white transition";
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error("Logout error:", error.message);
+    } else {
+      console.log("User logged out successfully");
+      localStorage.removeItem("user");
+      router.push("/");
+    }
+  };
 
   return (
     <nav className="bg-slate-900/80 backdrop-blur-lg border-b border-white/10 sticky top-0 z-50">
@@ -33,7 +49,7 @@ export default function Navbar() {
           <Link href="/about" className={isActive("/about")}>
             About
           </Link>
-          <Link href="/docs" className={isActive("/docs")}>
+          <Link href="/documentation" className={isActive("/documentation")}>
             Docs
           </Link>
           <Link href="/dashboard" className={isActive("/dashboard")}>
@@ -41,11 +57,26 @@ export default function Navbar() {
           </Link>
         </div>
 
+<<<<<<< HEAD
         <div className="hidden md:block">
           <button className="px-6 py-2 text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300">
             Get Started
+=======
+        {user ? (
+          <button
+            onClick={handleLogout}
+            className="hidden md:block px-6 py-3 text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300 cursor-pointer"
+          >
+            Log out
+>>>>>>> f77a35fd2639599773acef48d3d04b47c64e9ce7
           </button>
-        </div>
+        ) : (
+          <Link href="/login">
+            <button className="hidden md:block px-6 py-3 text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300 cursor-pointer">
+              Get Started
+            </button>
+          </Link>
+        )}
 
         <button
           className="md:hidden text-white text-2xl"
@@ -81,9 +112,9 @@ export default function Navbar() {
                 About
               </Link>
               <Link
-                href="/docs"
+                href="/documentation"
                 onClick={() => setOpen(false)}
-                className={isActive("/docs")}
+                className={isActive("/documentation")}
               >
                 Docs
               </Link>
@@ -95,11 +126,26 @@ export default function Navbar() {
                 Dashboard
               </Link>
 
+<<<<<<< HEAD
               <Link href="/signin" className="w-[85%]">
                 <button className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300">
                   Get Started
+=======
+              {user ? (
+                <button
+                  onClick={handleLogout}
+                  className="w-[85%] px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300"
+                >
+                  Log out
+>>>>>>> f77a35fd2639599773acef48d3d04b47c64e9ce7
                 </button>
-              </Link>
+              ) : (
+                <Link href="/signin" className="w-[85%]">
+                  <button className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300">
+                    Get Started
+                  </button>
+                </Link>
+              )}
             </div>
           </motion.div>
         )}

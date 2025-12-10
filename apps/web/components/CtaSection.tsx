@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { IoMdArrowForward } from "react-icons/io";
 
-export default function DemoSection() {
+export default function CtaSection() {
   return (
     <section className="py-20 px-6 bg-linear-to-r from-purple-600 to-pink-600">
       <div className="max-w-4xl mx-auto text-center">
@@ -20,7 +20,7 @@ export default function DemoSection() {
             Join thousands of companies using Tourify to onboard their users
           </p>
 
-          <Link href="#">
+          <Link href="/login">
             <button className="px-8 py-4 bg-white text-purple-600 hover:bg-gray-100 rounded-lg font-semibold flex items-center gap-2 mx-auto transition duration-300 cursor-pointer">
               Start Free Trial
               <IoMdArrowForward className="w-5 h-5" />
