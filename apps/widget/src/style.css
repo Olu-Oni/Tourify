@@ -90,6 +90,7 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   max-width: 400px;
   min-width: 300px;
+  transition: all 0.2s ease;
 }
 
 /* Tooltip Header */
@@ -145,6 +146,7 @@
   font-size: 20px;
   font-weight: 600;
   color: var(--tour-text);
+  transition: all 0.2s ease;
 }
 
 /* Close Button */
@@ -174,6 +176,7 @@
   color: var(--tour-text-secondary);
   font-size: 15px;
   line-height: 1.6;
+  transition: all 0.2s ease;
 }
 
 /* Tooltip Footer */

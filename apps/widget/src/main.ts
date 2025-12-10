@@ -295,11 +295,3 @@ if (document.readyState === "loading") {
 }
 
 (window as any).TourifyWidget = TourWidget;
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initWidget);
-} else {
-  initWidget();
-}
-
-(window as any).TourifyWidget = TourWidget;
