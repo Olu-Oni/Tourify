@@ -43,7 +43,7 @@ export default function HeroSection() {
                 </button>
               </Link>
 
-              <Link href="https://tourify-widget.vercel.app/test/test2.html">
+              <Link href="https://tourify-widget.vercel.app/test/">
                 <button className="px-8 py-4 border border-white/20 hover:bg-white/10 text-white rounded-lg font-semibold transition duration-300 cursor-pointer">
                   View Demo
                 </button>
