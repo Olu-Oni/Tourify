@@ -180,7 +180,7 @@ body: JSON.stringify({
             </div>
 
             <p className="text-slate-600 mb-4">
-              Add these two lines to your HTML, right before the closing{" "}
+              Add these lines to your HTML ( first two attributes, "src" and "data-tour-id" are required ), right before the closing{" "}
               <code className="bg-slate-100 px-2 py-1 rounded">
                 &lt;/body&gt;
               </code>{" "}
@@ -203,13 +203,13 @@ body: JSON.stringify({
             </div>
 
             <p className="text-slate-600 mb-4">
-              Initialize the widget with your tour ID and API key:
+              Initialize the widget with your tour ID:
             </p>
 
             <CodeBlock code={basicUsage} language="javascript" id="basic" />
 
             <p className="text-slate-600 mb-4">
-              You can find your tour ID and API key in the dashboard after
+              You can find your tour ID in the dashboard after
               creating a tour.
             </p>
           </section>
