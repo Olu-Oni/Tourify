@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function DocumentationSidebar() {
   return (
     <aside className="lg:col-span-1">
-      <div className="sticky top-24 space-y-1">
+      <div className="fixed top-24 space-y-1">
         <Link
           href="#getting-started"
           className="block px-4 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg"
