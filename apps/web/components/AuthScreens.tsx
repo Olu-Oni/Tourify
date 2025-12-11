@@ -104,7 +104,7 @@ export default function AuthScreens({ defaultMode }: AuthScreensProps) {
           .eq("id", data.user.id)
           .single();
 
-        localStorage.setItem("user", JSON.stringify(profileData));
+        // localStorage.setItem("user", JSON.stringify(profileData));
 
         // Redirect to dashboard
         router.push("/dashboard");

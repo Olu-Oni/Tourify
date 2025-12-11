@@ -1,159 +1,278 @@
-import { useEffect, useState, useRef } from "react";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Tour } from "../interfaces/types";
-import { getSupabase } from "../lib/supabaseClient";
-import { toast } from "sonner";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
-export function useTours(initial: Tour[] = []) {
-  const [tours, setTours] = useState<Tour[]>(initial);
-  const supabase = getSupabase();
-  const subRef = useRef<ReturnType<SupabaseClient["channel"]> | null>(null);
+export interface Step {
+  id: string;
+  tour_id: string;
+  step_id: string;
+  title: string;
+  content: string;
+  target_selector: string;
+  position: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Tour {
+  id: string;
+  created_by: string;
+  title: string;
+  description: string;
+  is_public: boolean;
+  slug: string;
+  created_at?: string;
+  updated_at?: string;
+  steps?: Step[];
+}
+
+export interface TourStats {
+  views: number;
+  completions: number;
+  completionRate: number;
+}
+
+export default function useTours() {
+  const [tours, setTours] = useState<Tour[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchTours = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data: toursData, error: toursError } = await supabase
+        .from("tours")
+        .select("*")
+        .eq("created_by", user.id)
+        .order("created_at", { ascending: false });
+
+      if (toursError) {
+        console.error("Supabase error:", toursError);
+        throw new Error(`Database error: ${toursError.message}`);
+      }
+
+      const toursWithSteps = await Promise.all(
+        (toursData || []).map(async (tour) => {
+          const { data: stepsData, error: stepsError } = await supabase
+            .from("tour_steps")
+            .select("*")
+            .eq("tour_id", tour.id)
+            .order("position", { ascending: true });
+
+          if (stepsError) {
+            console.error("Error fetching steps:", stepsError);
+          }
+
+          return {
+            ...tour,
+            steps: stepsData || [],
+          };
+        })
+      );
+
+      setTours(toursWithSteps);
+    } catch (err: any) {
+      setError(err.message);
+      console.error("Error fetching tours:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createTour = async (tourData: {
+    name: string;
+    description: string;
+    isActive: boolean;
+    steps: Array<{
+      title: string;
+      description: string;
+      targetSelector: string;
+      position: string;
+      order: number;
+    }>;
+  }) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const slug = tourData.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+
+      const { data: newTour, error: tourError } = await supabase
+        .from("tours")
+        .insert({
+          created_by: user.id,
+          title: tourData.name,
+          description: tourData.description,
+          is_public: tourData.isActive,
+          slug: slug,
+        })
+        .select()
+        .single();
+
+      if (tourError) throw tourError;
+
+      const stepsToInsert = tourData.steps.map((step, index) => ({
+        tour_id: newTour.id,
+        step_id: `step_${index + 1}`,
+        title: step.title,
+        content: step.description,
+        target_selector: step.targetSelector,
+        position: index,
+      }));
+
+      const { error: stepsError } = await supabase
+        .from("tour_steps")
+        .insert(stepsToInsert);
+
+      if (stepsError) throw stepsError;
+
+      await fetchTours();
+      return newTour;
+    } catch (err: any) {
+      setError(err.message);
+      console.error("Error creating tour:", err);
+      throw err;
+    }
+  };
+
+  const updateTour = async (
+    tourId: string,
+    updates: Partial<{
+      title: string;
+      description: string;
+      is_public: boolean;
+    }>
+  ) => {
+    try {
+      const dbUpdates: any = {};
+      
+      if (updates.title !== undefined) dbUpdates.title = updates.title;
+      if (updates.description !== undefined) dbUpdates.description = updates.description;
+      if (updates.is_public !== undefined) dbUpdates.is_public = updates.is_public;
+
+      const { error } = await supabase
+        .from("tours")
+        .update(dbUpdates)
+        .eq("id", tourId);
+
+      if (error) throw error;
+
+      await fetchTours();
+    } catch (err: any) {
+      setError(err.message);
+      console.error("Error updating tour:", err);
+      throw err;
+    }
+  };
+
+  const updateTourSteps = async (tourId: string, steps: Array<{
+    title: string;
+    description: string;
+    targetSelector: string;
+    position: string;
+    order: number;
+  }>) => {
+    try {
+      await supabase.from("tour_steps").delete().eq("tour_id", tourId);
+
+      const stepsToInsert = steps.map((step, index) => ({
+        tour_id: tourId,
+        step_id: `step_${index + 1}`,
+        title: step.title,
+        content: step.description,
+        target_selector: step.targetSelector,
+        position: index,
+      }));
+
+      const { error } = await supabase
+        .from("tour_steps")
+        .insert(stepsToInsert);
+
+      if (error) throw error;
+
+      await fetchTours();
+    } catch (err: any) {
+      setError(err.message);
+      console.error("Error updating steps:", err);
+      throw err;
+    }
+  };
+
+  const deleteTour = async (tourId: string) => {
+    try {
+      await supabase.from("tour_steps").delete().eq("tour_id", tourId);
+      const { error } = await supabase.from("tours").delete().eq("id", tourId);
+
+      if (error) throw error;
+
+      await fetchTours();
+    } catch (err: any) {
+      setError(err.message);
+      console.error("Error deleting tour:", err);
+      throw err;
+    }
+  };
+
+  const fetchTourStats = async (tourId: string): Promise<TourStats> => {
+    try {
+      const { count: viewsCount } = await supabase
+        .from("tour_analytics")
+        .select("*", { count: "exact", head: true })
+        .eq("tour_id", tourId)
+        .eq("event_type", "tour_started");
+
+      const { count: completionsCount } = await supabase
+        .from("tour_analytics")
+        .select("*", { count: "exact", head: true })
+        .eq("tour_id", tourId)
+        .eq("event_type", "tour_completed");
+
+      const views = viewsCount || 0;
+      const completions = completionsCount || 0;
+      const completionRate = views > 0 ? Math.round((completions / views) * 100) : 0;
+
+      return { views, completions, completionRate };
+    } catch (err) {
+      console.error("Error fetching stats:", err);
+      return { views: 0, completions: 0, completionRate: 0 };
+    }
+  };
 
   useEffect(() => {
-    if (!supabase) {
-      console.warn("Supabase not configured — using local state only.");
-      return;
-    }
+    fetchTours();
 
     const channel = supabase
-      .channel("public:tours")
+      .channel("tours-changes")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "tours" },
-        (payload) => {
-          const ev = payload.eventType;
-          const record = (payload.new ?? payload.old) as any;
-
-          if (!record?.id) return;
-
-          if (ev === "INSERT") {
-            setTours((prev) => {
-              if (prev.some((t) => t.id === String(record.id))) return prev;
-              toast.success(`Tour created: ${record.name}`);
-              return [...prev, normalize(record)];
-            });
-          }
-
-          if (ev === "UPDATE") {
-            toast.success(`Tour updated: ${record.name}`);
-            setTours((prev) =>
-              prev.map((t) =>
-                t.id === String(record.id) ? normalize(record) : t
-              )
-            );
-          }
-
-          if (ev === "DELETE") {
-            toast.success("Tour deleted");
-            setTours((prev) => prev.filter((t) => t.id !== String(record.id)));
-          }
+        () => {
+          fetchTours();
         }
       )
       .subscribe();
 
-    subRef.current = channel;
-
-    // initial fetch
-    (async () => {
-      const { data, error } = await supabase.from("tours").select("*");
-      if (error) {
-        console.error("Failed to fetch tours", error);
-        toast.error("Failed to load tours");
-        return;
-      }
-      if (data) setTours(data.map(normalize));
-    })();
-
     return () => {
-      try {
-        if (subRef.current) supabase.removeChannel(subRef.current);
-      } catch {
-        /* ignore */
-      }
+      supabase.removeChannel(channel);
     };
-  }, [supabase]);
+  }, []);
 
-  // ---------------------------
-  // CRUD helpers
-  // ---------------------------
-  const createTour = async (t: Omit<Tour, "id">): Promise<Tour> => {
-    const sup = getSupabase();
-
-    if (!sup) {
-      const next: Tour = { ...t, id: Date.now().toString() };
-      setTours((prev) => [...prev, next]);
-      toast.success("Tour created (local)");
-      return next;
-    }
-
-    const { data, error } = await sup.from("tours").insert(t).select().single();
-    if (error || !data) {
-      toast.error("Failed to create tour");
-      throw error;
-    }
-
-    toast.success("Tour created");
-    return normalize(data);
-  };
-
-  const updateTour = async (id: string, updates: Partial<Tour>) => {
-    const sup = getSupabase();
-
-    if (!sup) {
-      setTours((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
-      );
-      toast.success("Tour updated (local)");
-      return;
-    }
-
-    const { data, error } = await sup
-      .from("tours")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error || !data) {
-      toast.error("Failed to update tour");
-      throw error;
-    }
-
-    setTours((prev) => prev.map((t) => (t.id === id ? normalize(data) : t)));
-  };
-
-  const deleteTour = async (id: string) => {
-    const sup = getSupabase();
-
-    if (!sup) {
-      setTours((prev) => prev.filter((t) => t.id !== id));
-      toast.success("Tour deleted (local)");
-      return;
-    }
-
-    const { error } = await sup.from("tours").delete().eq("id", id);
-    if (error) {
-      toast.error("Failed to delete tour");
-      throw error;
-    }
-    // realtime handles UI update
-  };
-
-  return { tours, createTour, updateTour, deleteTour, setTours };
-}
-
-// ---------------------------
-// Normalizer
-// ---------------------------
-function normalize(raw: Record<string, unknown>): Tour {
   return {
-    id: String(raw.id ?? ""),
-    name: String(raw.name ?? ""),
-    description: String(raw.description ?? ""),
-    isActive: Boolean(raw.isActive),
-    steps: Number(raw.steps ?? 0),
-    views: Number(raw.views ?? 0),
-    completions: Number(raw.completions ?? 0),
-    completionRate: Number(raw.completionRate ?? 0),
+    tours,
+    loading,
+    error,
+    createTour,
+    updateTour,
+    updateTourSteps,
+    deleteTour,
+    fetchTourStats,
+    refetch: fetchTours,
   };
 }
