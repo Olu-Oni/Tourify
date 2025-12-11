@@ -22,54 +22,47 @@ export default function Documentation() {
     setTimeout(() => setCopiedCode(""), 2000);
   };
 
-  const installCode = `<script src="https://cdn.tourify.com/widget.js"></script>
-<link rel="stylesheet" href="https://cdn.tourify.com/widget.css">`;
-
-  const basicUsage = `<script>
-Tourify.init({
-  tourId: 'your_tour_id',
-  apiKey: 'your_api_key'
-});
+  const installCode = `<script
+  src="https://tourify-widget.vercel.app/tourify-widget.js"
+  data-tour-id="your-tour-id"
+  data-auto-start="true"
+  data-show-avatar="true"
+  data-theme="light">
 </script>`;
 
-  const advancedConfig = `<script>
-Tourify.init({
-  tourId: 'tour_123',
-  apiKey: 'pk_live_xxx',
-  autoStart: true,
-  theme: 'dark',
-  avatar: {
-    enabled: true,
-    model: 'robot'
-  },
-  onComplete: () => {
-    console.log('Tour completed!');
-  }
-});
+  const basicUsage = `<script
+  src="https://tourify-widget.vercel.app/tourify-widget.js"
+  data-tour-id="your-tour-id">
 </script>`;
 
-  const customSteps = `const tourConfig = {
-tourId: 'custom_tour',
-apiKey: 'pk_live_xxx',
-steps: [
-  {
-    id: 'step_1',
-    title: 'Welcome!',
-    description: 'Lets get started',
-    targetSelector: '#header',
-    position: 'bottom'
-  },
-  {
-    id: 'step_2',
-    title: 'Navigation',
-    description: 'Find what you need',
-    targetSelector: '#nav-menu',
-    position: 'right'
-  }
-]
-};
+  const advancedConfig = `<script
+  src="https://tourify-widget.vercel.app/tourify-widget.js"
+  data-tour-id="tour_123"
+  data-auto-start="false"
+  data-show-avatar="false"
+  data-theme="dark"
+  data-api-url="https://your-custom-api.com">
+</script>`;
 
-Tourify.init(tourConfig);`;
+  const customSteps = `// Tourify automatically uses built-in mock tours for IDs like:
+// - 'tourify-default-1' (Basic Welcome Tour)
+// - 'tourify-default-2' (E-Commerce Dashboard Tour)
+
+// For custom tours, your server should return data in this format:
+const tourData = {
+  id: 'custom_tour',
+  name: 'My Custom Tour',
+  steps: [
+    {
+      id: 'step_1',
+      title: 'Welcome!',
+      description: 'Tour description here',
+      target: '#element-id',      // CSS selector or 'body'
+      position: 'bottom'          // 'top', 'bottom', 'left', 'right', 'center'
+    }
+    // ... more steps
+  ]
+};`;
 
   const apiExample = `const response = await fetch('/api/tours', {
 method: 'POST',
@@ -105,8 +98,10 @@ body: JSON.stringify({
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
-      <div className="grid lg:grid-cols-4 gap-8">
-        <DocumentationSidebar />
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
+        <div className="lg:block hidden">
+          <DocumentationSidebar />
+        </div>
         <main className="lg:col-span-3">
           <div className="bg-white rounded-xl border border-slate-200 p-8 mb-8">
             <h1 className="text-4xl font-bold text-slate-900 mb-4">
@@ -185,7 +180,7 @@ body: JSON.stringify({
             </div>
 
             <p className="text-slate-600 mb-4">
-              Add these two lines to your HTML, right before the closing{" "}
+              Add these lines to your HTML ( first two attributes, "src" and "data-tour-id" are required ), right before the closing{" "}
               <code className="bg-slate-100 px-2 py-1 rounded">
                 &lt;/body&gt;
               </code>{" "}
@@ -208,13 +203,13 @@ body: JSON.stringify({
             </div>
 
             <p className="text-slate-600 mb-4">
-              Initialize the widget with your tour ID and API key:
+              Initialize the widget with your tour ID:
             </p>
 
             <CodeBlock code={basicUsage} language="javascript" id="basic" />
 
             <p className="text-slate-600 mb-4">
-              You can find your tour ID and API key in the dashboard after
+              You can find your tour ID in the dashboard after
               creating a tour.
             </p>
           </section>
@@ -301,28 +296,6 @@ body: JSON.stringify({
                     <td className="py-3 px-4 text-slate-600">string</td>
                     <td className="py-3 px-4 text-slate-600">
                       'light' or 'dark'
-                    </td>
-                  </tr>
-                  <tr className="border-b border-slate-100">
-                    <td className="py-3 px-4">
-                      <code className="bg-slate-100 px-2 py-1 rounded">
-                        avatar
-                      </code>
-                    </td>
-                    <td className="py-3 px-4 text-slate-600">object</td>
-                    <td className="py-3 px-4 text-slate-600">
-                      Avatar configuration
-                    </td>
-                  </tr>
-                  <tr className="border-b border-slate-100">
-                    <td className="py-3 px-4">
-                      <code className="bg-slate-100 px-2 py-1 rounded">
-                        onComplete
-                      </code>
-                    </td>
-                    <td className="py-3 px-4 text-slate-600">function</td>
-                    <td className="py-3 px-4 text-slate-600">
-                      Callback when tour completes
                     </td>
                   </tr>
                 </tbody>
