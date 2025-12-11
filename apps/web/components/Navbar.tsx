@@ -133,7 +133,7 @@ export default function Navbar() {
                 </>
               ) : (
                 <Link
-                  href="/signin"
+                  href="/login"
                   className="w-[85%]"
                   onClick={() => setOpen(false)}
                 >
