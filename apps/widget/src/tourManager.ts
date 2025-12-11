@@ -174,20 +174,32 @@ export class TourManager implements ITourManager {
   }
 
   private showSkipConfirmation(): void {
+    // Check if we're at the last step - if so, just complete the tour
+    if (this.currentStep === this.tourData.steps.length - 1) {
+      console.log(
+        "✅ At last step - completing tour instead of showing skip confirmation"
+      );
+      this.complete();
+      return;
+    }
+
     // Create modal backdrop
     const modal = document.createElement("div");
     modal.className = "tour-skip-modal";
     modal.innerHTML = `
-      <div class="tour-skip-modal-backdrop"></div>
-      <div class="tour-skip-modal-content">
-        <h3>Skip Tutorial?</h3>
-        <p>Are you sure you want to skip this tour? You can always restart it later if needed.</p>
-        <div class="tour-skip-modal-actions">
-          <button class="tour-btn tour-btn-secondary tour-skip-cancel">Continue Tour</button>
-          <button class="tour-btn tour-btn-danger tour-skip-confirm">Yes, Skip</button>
-        </div>
+    <div class="tour-skip-modal-backdrop"></div>
+    <div class="tour-skip-modal-content">
+      <div class="tour-skip-modal-icon">🤔</div>
+      <h3>Skip This Tour?</h3>
+      <p>You're on step ${this.currentStep + 1} of ${
+      this.tourData.steps.length
+    }. Are you sure you want to skip the rest of the tour?</p>
+      <div class="tour-skip-modal-actions">
+        <button class="tour-btn tour-btn-secondary tour-skip-cancel">Continue Tour</button>
+        <button class="tour-btn tour-btn-danger tour-skip-confirm">Yes, Skip</button>
       </div>
-    `;
+    </div>
+  `;
 
     document.body.appendChild(modal);
 
