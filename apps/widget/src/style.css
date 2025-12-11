@@ -385,7 +385,6 @@
     color: var(--tour-text-secondary);
   }
 }
-
 /* Skip Confirmation Modal */
 .tour-skip-modal {
   position: fixed;
@@ -417,7 +416,7 @@
 
 .tour-skip-modal-content {
   position: relative;
-  background: white;
+  background: var(--tour-bg);
   border-radius: 16px;
   padding: 20px;
   max-width: 300px;
@@ -425,7 +424,7 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   text-align: center;
   transform: scale(0.9);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, background 0.2s ease;
 }
 
 .tour-skip-modal.active .tour-skip-modal-content {
@@ -451,14 +450,16 @@
   margin: 0 0 12px 0;
   font-size: 24px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--tour-text);
+  transition: color 0.2s ease;
 }
 
 .tour-skip-modal-content p {
   margin: 0 0 24px 0;
-  color: #6b7280;
+  color: var(--tour-text-secondary);
   font-size: 15px;
   line-height: 1.6;
+  transition: color 0.2s ease;
 }
 
 .tour-skip-modal-actions {
@@ -481,22 +482,6 @@
   background: #b91c1c;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
-}
-
-/* Dark Mode Support for Modal */
-@media (prefers-color-scheme: dark) {
-  .tour-skip-modal-content {
-    background: #1f2937;
-    color: #f9fafb;
-  }
-
-  .tour-skip-modal-content h3 {
-    color: #f9fafb;
-  }
-
-  .tour-skip-modal-content p {
-    color: #d1d5db;
-  }
 }
 
 /* Mobile Responsive */
