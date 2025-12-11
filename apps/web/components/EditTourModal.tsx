@@ -6,14 +6,14 @@ import useTours from "../hooks/useTours";
 
 export default function EditTourModal({ id, onClose }: { id: string | null; onClose: () => void }) {
   const { tours, updateTour } = useTours();
-  const [name, setName] = useState("");
+  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
   useEffect(() => {
     if (!id) return;
     const t = tours.find((x) => x.id === id);
     if (t) {
-      setName(t.name ?? "");
+      setTitle(t.title ?? "");
       setDescription(t.description ?? "");
     }
   }, [id, tours]);
@@ -21,7 +21,7 @@ export default function EditTourModal({ id, onClose }: { id: string | null; onCl
   if (!id) return null;
 
   const submit = async () => {
-    await updateTour(id, { name, description });
+    await updateTour(id, { title, description });
     onClose();
   };
 
@@ -31,8 +31,8 @@ export default function EditTourModal({ id, onClose }: { id: string | null; onCl
         <h3 className="text-xl font-semibold mb-4">Edit Tour</h3>
         <div className="space-y-3">
           <div>
-            <label className="text-sm block mb-1">Name</label>
-            <input className="w-full border px-3 py-2 rounded" value={name} onChange={(e) => setName(e.target.value)} />
+            <label className="text-sm block mb-1">Title</label>
+            <input className="w-full border px-3 py-2 rounded" value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
           <div>
             <label className="text-sm block mb-1">Description</label>

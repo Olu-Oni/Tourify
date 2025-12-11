@@ -16,7 +16,7 @@ export default function ToursList() {
         {tours.map((t) => (
           <motion.div key={t.id} initial={{ y: 5, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="p-4 border rounded-lg flex justify-between items-center">
             <div>
-              <div className="font-medium">{t.name}</div>
+              <div className="font-medium">{t.title}</div>
               <div className="text-sm text-gray-500">{t.description}</div>
             </div>
             <div className="flex gap-2">
