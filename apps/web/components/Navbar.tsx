@@ -52,9 +52,6 @@ export default function Navbar() {
           <Link href="/documentation" className={isActive("/documentation")}>
             Docs
           </Link>
-          {/* <Link href="/dashboard" className={isActive("/dashboard")}>
-            Dashboard
-          </Link> */}
         </div>
 
         {user ? (
@@ -112,13 +109,6 @@ export default function Navbar() {
               >
                 Docs
               </Link>
-              {/* <Link
-                href="/dashboard"
-                onClick={() => setOpen(false)}
-                className={isActive("/dashboard")}
-              >
-                Dashboard
-              </Link> */}
 
               {user ? (
                 <button
