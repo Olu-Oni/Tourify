@@ -10,54 +10,232 @@
         margin: 0;
         padding: 20px;
         min-height: 200vh;
+        background: #f0f0f0;
+        color: #1f2937;
       }
+      
+      .header-container {
+        border: 2px solid #3b82f6;
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 30px;
+        background: white;
+      }
+      
       .test-section {
         margin: 40px 0;
-        padding: 20px;
-        background: #f3f4f6;
+        padding: 25px;
+        background: white;
         border-radius: 8px;
+        border: 1px solid #e5e7eb;
       }
+      
+      .restart-section {
+        border: 2px solid #c13bf6;
+        text-align: center;
+      }
+      
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin: 30px 0;
+      }
+      
+      .feature-card {
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        padding: 20px;
+        background: white;
+      }
+      
       button {
         padding: 12px 24px;
         background: #3b82f6;
         color: white;
         border: none;
         border-radius: 6px;
-        cursor: pointer;
         margin: 10px;
+        font-weight: 500;
       }
+      
       #tourify-restart-btn {
         background: #c13bf6 !important;
-        margin: 0px auto;
+        margin: 20px auto;
+        cursor: pointer;
         padding: 16px 30px !important;
+        display: block;
+        border: 1px solid #a855f7;
+      }
+      
+      .button-group {
+        border-top: 1px solid #e5e7eb;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 20px;
+        margin: 25px 0;
+        background: #f8fafc;
+      }
+      
+      .scroll-test {
+        margin-top: 100vh;
+        border: 1px solid #dc2626;
+        background: #fef2f2;
+      }
+      
+      .scroll-test h2 {
+        color: #dc2626;
+      }
+      
+      .content-block {
+        border: 1px solid #10b981;
+        padding: 20px;
+        margin: 20px 0;
+        background: #f0fdf4;
+        border-radius: 6px;
+      }
+      
+      .stats-container {
+        display: flex;
+        gap: 20px;
+        margin: 25px 0;
+        flex-wrap: wrap;
+      }
+      
+      .stat-box {
+        border: 1px solid #f59e0b;
+        padding: 15px;
+        border-radius: 6px;
+        flex: 1;
+        min-width: 150px;
+        background: #fffbeb;
+      }
+      
+      footer {
+        border-top: 2px solid #6b7280;
+        margin-top: 40px;
+        padding-top: 20px;
+        text-align: center;
+        color: #6b7280;
+      }
+      
+      code {
+        border: 1px solid #d1d5db;
+        background: #f3f4f6;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: monospace;
       }
     </style>
   </head>
   <body>
-    <h1>Tour Widget Test Page</h1>
+    <div class="header-container">
+      <h1>Tour Widget Test Page</h1>
+      <p>This page demonstrates the Tour Widget functionality with various test sections.</p>
+      <p>N.B:  Buttons other than "Start Tour" do not function, this demo is only for testing the widget functions alone</p>
+    </div>
 
     <div class="test-section restart-section">
+      <h2>Tour Initialization</h2>
       <button id="tourify-restart-btn">Start Tour</button>
       <p>
-        Auto start for this Test site is set to "False", Click on the button to
-        begin the tour
+        Auto start for this Test site is set to <code>"False"</code>, Click on the button to
+        begin the tour.
       </p>
+      <div class="content-block">
+        <h3>How it works:</h3>
+        <p>The tour widget will guide you through key elements on this page. Each step highlights a specific component.</p>
+      </div>
     </div>
 
     <div class="test-section">
       <h2 id="nav-menu">Navigation Section</h2>
-      <p>This is where the tour will point</p>
+      <p>This is the primary navigation area that the tour will point to.</p>
+      
+      <div class="stats-container">
+        <div class="stat-box">
+          <h3>Step 1</h3>
+          <p>Tour begins here</p>
+        </div>
+        <div class="stat-box">
+          <h3>Step 2</h3>
+          <p>Move to buttons</p>
+        </div>
+        <div class="stat-box">
+          <h3>Step 3</h3>
+          <p>View features</p>
+        </div>
+      </div>
     </div>
 
     <div class="test-section">
-      <button id="create-button">Create Button</button>
-      <button id="dashboard-link">Dashboard</button>
+      <h2>Action Buttons</h2>
+      <p>Test interactive elements that the tour will highlight.</p>
+      
+      <div class="button-group">
+        <button id="create-button">Create New Item</button>
+        <button id="dashboard-link">Go to Dashboard</button>
+        <button id="settings-btn">Settings</button>
+        <button id="help-btn">Help & Support</button>
+      </div>
+      
+      <div class="content-block">
+        <h3>Button Functions:</h3>
+        <p>Each button represents a different action in the application workflow.</p>
+      </div>
     </div>
 
-    <div class="test-section" style="margin-top: 100vh">
-      <h2>Scroll Test Section</h2>
-      <p>Test positioning when scrolled</p>
+    <div class="test-section">
+      <h2>Feature Overview</h2>
+      <p>Explore the main features available in this interface.</p>
+      
+      <div class="feature-grid">
+        <div class="feature-card">
+          <h3>Data Management</h3>
+          <p>Create, read, update, and delete records with ease.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Analytics</h3>
+          <p>View detailed reports and performance metrics.</p>
+        </div>
+        <div class="feature-card">
+          <h3>User Settings</h3>
+          <p>Customize your preferences and notification settings.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Integration</h3>
+          <p>Connect with third-party tools and services.</p>
+        </div>
+      </div>
     </div>
+
+    <div class="test-section scroll-test">
+      <h2>Scroll Test Section</h2>
+      <p>This section Is just to extend the page</p>
+      <div class="content-block">
+        <h3>Scroll Behavior:</h3>
+        <p>The tour should automatically scroll to this element and highlight it properly.</p>
+      </div>
+      
+      <div class="stats-container">
+        <div class="stat-box">
+          <h3>Position</h3>
+          <p>100vh from top</p>
+        </div>
+        <div class="stat-box">
+          <h3>Visibility</h3>
+          <p>Requires scrolling</p>
+        </div>
+        <div class="stat-box">
+          <h3>Test Type</h3>
+          <p>Scroll positioning</p>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Tour Widget Test Environment | All borders are visible without shadows</p>
+      <p>Widget Loaded: <code>https://tourify-widget.vercel.app/tourify-widget.js</code></p>
+    </footer>
 
     <!-- Load the widget -->
     <script
