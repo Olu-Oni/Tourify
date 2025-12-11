@@ -16,6 +16,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "clipboard-copy": "^4.0.1",
     "framer-motion": "^12.23.25",
     "react-icons": "^5.5.0"
   }
