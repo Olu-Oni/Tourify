@@ -8,20 +8,12 @@ export default function HeroSection() {
   const [demoStep, setDemoStep] = useState(0);
 
   const demoSteps = [
-    { title: "Welcome!", desc: "Let's show you around" },
-    { title: "Navigation", desc: "Find what you need" },
-    { title: "Features", desc: "Explore the tools" },
-    { title: "Settings", desc: "Customize your experience" },
-    { title: "Done!", desc: "You're all set!" },
+    { step: "" },
+    { step: "" },
+    { step: "" },
+    { step: "" },
+    { step: "" },
   ];
-
-  const nextDemoStep = () => {
-    if (demoStep < demoSteps.length - 1) {
-      setDemoStep(demoStep + 1);
-    } else {
-      setDemoStep(0);
-    }
-  };
 
   return (
     <section className="pt-32 pb-20 px-6">
@@ -51,9 +43,11 @@ export default function HeroSection() {
                 </button>
               </Link>
 
-              <button className="px-8 py-4 border border-white/20 hover:bg-white/10 text-white rounded-lg font-semibold transition duration-300 cursor-pointer">
-                View Demo
-              </button>
+              <Link href="https://tourify-widget.vercel.app/test/test2.html">
+                <button className="px-8 py-4 border border-white/20 hover:bg-white/10 text-white rounded-lg font-semibold transition duration-300 cursor-pointer">
+                  View Demo
+                </button>
+              </Link>
             </div>
           </motion.div>
 
@@ -79,9 +73,11 @@ export default function HeroSection() {
                 className="bg-purple-600/20 border border-purple-400/30 rounded-xl p-6 mb-4"
               >
                 <h3 className="text-xl font-semibold text-white mb-2">
-                  {demoSteps[demoStep].title}
+                  See users complete tasks faster and with less frustration.
                 </h3>
-                <p className="text-gray-300 mb-4">{demoSteps[demoStep].desc}</p>
+                <p className="text-gray-300 mb-4">
+                  Guiding users every step of the way.
+                </p>
 
                 <div className="flex items-center justify-between">
                   <div className="flex gap-2">
@@ -94,19 +90,10 @@ export default function HeroSection() {
                       />
                     ))}
                   </div>
-                  <button
-                    onClick={nextDemoStep}
-                    className="px-4 py-2 text-white bg-purple-600 hover:bg-purple-700 rounded-lg text-sm flex items-center gap-2 transition duration-300 cursor-pointer"
-                  >
-                    {demoStep < demoSteps.length - 1 ? "Next" : "Restart"}
-                    <IoMdArrowForward className="w-4 h-4" />
-                  </button>
+
+                  <div className="px-4 py-2 text-white bg-purple-600  rounded-lg text-sm flex items-center gap-2"></div>
                 </div>
               </motion.div>
-
-              <div className="text-center text-gray-400 text-sm">
-                Step {demoStep + 1} of {demoSteps.length}
-              </div>
             </div>
           </motion.div>
         </div>

@@ -1,5 +1,26 @@
 /* Tour Widget Styles */
 
+/* Theme Variables */
+:root {
+  --tour-primary: #9810fa;
+  --tour-primary-dark: #5a0795;
+  --tour-bg: white;
+  --tour-text: #1f2937;
+  --tour-text-secondary: #6b7280;
+  --tour-border: #e5e7eb;
+  --tour-overlay: rgba(0, 0, 0, 0.5);
+  --tour-secondary-bg: #f3f4f6;
+}
+
+/* Dark theme */
+[data-tour-theme="dark"] {
+  --tour-bg: #0c1521;
+  --tour-text: #f9fafb;
+  --tour-text-secondary: #d1d5db;
+  --tour-border: #374151;
+  --tour-secondary-bg: #374151;
+}
+
 /* Reset and base styles */
 .tour-tooltip,
 .tour-tooltip * {
@@ -25,7 +46,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--tour-overlay);
   z-index: 999998;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -38,9 +59,9 @@
 /* Spotlight */
 .tour-spotlight {
   position: fixed;
-  border: 3px solid #3b82f6;
+  border: 3px solid var(--tour-primary);
   border-radius: 8px;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 0 9999px var(--tour-overlay);
   z-index: 999999;
   pointer-events: none;
   transition: all 0.3s ease;
@@ -63,27 +84,69 @@
 
 /* Tooltip Content */
 .tour-tooltip-content {
-  background: white;
+  background: var(--tour-bg);
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   max-width: 400px;
   min-width: 300px;
+  transition: all 0.2s ease;
 }
 
 /* Tooltip Header */
 .tour-tooltip-header {
   display: flex;
-  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.tour-avatar-mini {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--tour-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  display: flex;
   align-items: center;
-  margin-bottom: 12px;
+  justify-content: center;
+}
+
+/* Three.js canvas styling */
+.tour-avatar-mini canvas {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50%;
+}
+
+/* Fallback emoji styling */
+.tour-avatar-mini.avatar-fallback {
+  font-size: 24px;
+  color: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.tour-tooltip-header-content {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+}
+
+.tour-avatar-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .tour-tooltip-header h3 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--tour-text);
+  transition: all 0.2s ease;
 }
 
 /* Close Button */
@@ -92,7 +155,7 @@
   border: none;
   font-size: 28px;
   cursor: pointer;
-  color: #6b7280;
+  color: var(--tour-text-secondary);
   line-height: 1;
   padding: 0;
   width: 30px;
@@ -104,20 +167,21 @@
 }
 
 .tour-close-btn:hover {
-  color: #1f2937;
+  color: var(--tour-text);
 }
 
 /* Tooltip Description */
 .tour-tooltip-content p {
   margin: 0 0 16px 0;
-  color: #4b5563;
+  color: var(--tour-text-secondary);
   font-size: 15px;
   line-height: 1.6;
+  transition: all 0.2s ease;
 }
 
 /* Tooltip Footer */
 .tour-tooltip-footer {
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--tour-border);
   padding-top: 16px;
 }
 
@@ -128,7 +192,7 @@
 
 .tour-progress span {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--tour-text-secondary);
   display: block;
   margin-bottom: 8px;
 }
@@ -136,14 +200,14 @@
 /* Progress Bar */
 .tour-progress-bar {
   height: 6px;
-  background: #e5e7eb;
+  background: var(--tour-border);
   border-radius: 3px;
   overflow: hidden;
 }
 
 .tour-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(90deg, var(--tour-primary-dark) 0%, var(--tour-primary) 100%);
   transition: width 0.3s ease;
   border-radius: 3px;
 }
@@ -170,23 +234,24 @@
 }
 
 .tour-btn-primary {
-  background: #3b82f6;
+  background: var(--tour-primary);
   color: white;
 }
 
 .tour-btn-primary:hover {
-  background: #2563eb;
+  background: var(--tour-primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 12px rgba(152, 16, 250, 0.4);
 }
 
 .tour-btn-secondary {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--tour-secondary-bg);
+  color: var(--tour-text);
 }
 
 .tour-btn-secondary:hover {
-  background: #e5e7eb;
+  background: var(--tour-text-secondary);
+  color: var(--tour-bg);
 }
 
 /* Completion Message */
@@ -206,7 +271,7 @@
 }
 
 .tour-completion-content {
-  background: white;
+  background: var(--tour-bg);
   border-radius: 16px;
   padding: 40px;
   text-align: center;
@@ -229,12 +294,12 @@
   margin: 0 0 8px 0;
   font-size: 24px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--tour-text);
 }
 
 .tour-completion-content p {
   margin: 0;
-  color: #6b7280;
+  color: var(--tour-text-secondary);
   font-size: 15px;
 }
 
@@ -266,57 +331,193 @@
 /* Dark Mode Support */
 @media (prefers-color-scheme: dark) {
   .tour-tooltip-content {
-    background: #1f2937;
-    color: #f9fafb;
+    background: var(--tour-bg);
+    color: var(--tour-text);
   }
 
   .tour-tooltip-header h3 {
-    color: #f9fafb;
+    color: var(--tour-text);
   }
 
   .tour-tooltip-content p {
-    color: #d1d5db;
+    color: var(--tour-text-secondary);
   }
 
   .tour-close-btn {
-    color: #9ca3af;
+    color: var(--tour-text-secondary);
   }
 
   .tour-close-btn:hover {
-    color: #f9fafb;
+    color: var(--tour-text);
   }
 
   .tour-tooltip-footer {
-    border-top-color: #374151;
+    border-top-color: var(--tour-border);
   }
 
   .tour-progress span {
-    color: #9ca3af;
+    color: var(--tour-text-secondary);
   }
 
   .tour-progress-bar {
-    background: #374151;
+    background: var(--tour-border);
   }
 
   .tour-btn-secondary {
-    background: #374151;
-    color: #f9fafb;
+    background: var(--tour-secondary-bg);
+    color: var(--tour-text);
   }
 
   .tour-btn-secondary:hover {
-    background: #4b5563;
+    background: var(--tour-text-secondary);
   }
 
   .tour-completion-content {
+    background: var(--tour-bg);
+    color: var(--tour-text);
+  }
+
+  .tour-completion-content h2 {
+    color: var(--tour-text);
+  }
+
+  .tour-completion-content p {
+    color: var(--tour-text-secondary);
+  }
+}
+
+/* Skip Confirmation Modal */
+.tour-skip-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000002;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.tour-skip-modal.active {
+  opacity: 1;
+}
+
+.tour-skip-modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+}
+
+.tour-skip-modal-content {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 300px;
+  width: calc(100% - 40px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.tour-skip-modal.active .tour-skip-modal-content {
+  transform: scale(1);
+}
+
+.tour-skip-modal-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.tour-skip-modal-content h3 {
+  margin: 0 0 12px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.tour-skip-modal-content p {
+  margin: 0 0 24px 0;
+  color: #6b7280;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.tour-skip-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.tour-skip-modal-actions .tour-btn {
+  flex: 1;
+  min-width: 120px;
+}
+
+.tour-btn-danger {
+  background: #dc2626;
+  color: white;
+}
+
+.tour-btn-danger:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+/* Dark Mode Support for Modal */
+@media (prefers-color-scheme: dark) {
+  .tour-skip-modal-content {
     background: #1f2937;
     color: #f9fafb;
   }
 
-  .tour-completion-content h2 {
+  .tour-skip-modal-content h3 {
     color: #f9fafb;
   }
 
-  .tour-completion-content p {
+  .tour-skip-modal-content p {
     color: #d1d5db;
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .tour-skip-modal-content {
+    padding: 24px;
+  }
+
+  .tour-skip-modal-icon {
+    font-size: 48px;
+  }
+
+  .tour-skip-modal-content h3 {
+    font-size: 20px;
+  }
+
+  .tour-skip-modal-actions {
+    flex-direction: column;
+  }
+
+  .tour-skip-modal-actions .tour-btn {
+    width: 100%;
   }
 }

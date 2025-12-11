@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import useUser from "@/hooks/useUser";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import useTours, { Tour, Step } from "@/hooks/useTours";
 import {
@@ -44,6 +45,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<"tours" | "analytics" | "settings">("tours");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const router = useRouter();
   const [editingTour, setEditingTour] = useState<Tour | null>(null);
   const [tourStats, setTourStats] = useState<Record<string, any>>({});
   
@@ -331,7 +333,7 @@ const openEditModal = (tour: Tour) => {
         <nav className="space-y-2">
           <button
             onClick={() => setActiveTab('tours')}
-            className={`w-full text-left px-4 py-3 rounded-lg transition ${
+            className={`w-full text-left px-4 py-3 rounded-lg transition cursor-pointer ${
               activeTab === 'tours' ? 'bg-purple-600' : 'hover:bg-slate-800'
             }`}
           >
@@ -340,7 +342,7 @@ const openEditModal = (tour: Tour) => {
           </button>
           <button
             onClick={() => setActiveTab('analytics')}
-            className={`w-full text-left px-4 py-3 rounded-lg transition ${
+            className={`w-full text-left px-4 py-3 rounded-lg transition cursor-pointer ${
               activeTab === 'analytics' ? 'bg-purple-600' : 'hover:bg-slate-800'
             }`}
           >
@@ -349,7 +351,7 @@ const openEditModal = (tour: Tour) => {
           </button>
           <button
             onClick={() => setActiveTab('settings')}
-            className={`w-full text-left px-4 py-3 rounded-lg transition ${
+            className={`w-full text-left px-4 py-3 rounded-lg transition cursor-pointer ${
               activeTab === 'settings' ? 'bg-purple-600' : 'hover:bg-slate-800'
             }`}
           >
@@ -363,10 +365,13 @@ const openEditModal = (tour: Tour) => {
             <div className="text-sm text-gray-400 mb-2">Signed in as</div>
             <div className="font-semibold truncate">{user?.email || "Loading..."}</div>
             <button
-              className="text-sm text-purple-400 hover:text-purple-300 mt-2"
-              onClick={() => supabase.auth.signOut()}
+              className="text-sm text-purple-400 hover:text-purple-300 mt-2 cursor-pointer"
+              onClick={async () => {
+                await supabase.auth.signOut();
+                router.push("/login");
+              }}
             >
-              Sign Out
+              Logout
             </button>
           </div>
         </div>
@@ -398,7 +403,7 @@ const openEditModal = (tour: Tour) => {
               <h2 className="text-2xl font-bold text-slate-900">Your Tours</h2>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center gap-2 transition"
+                className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center gap-2 transition cursor-pointer"
               >
                 <Plus className="w-5 h-5" />
                 Create Tour
@@ -460,28 +465,28 @@ const openEditModal = (tour: Tour) => {
                           <div className="flex gap-3">
                             <button
                               onClick={() => openEditModal(tour)}
-                              className="px-4 py-2 border border-slate-300 hover:bg-slate-50 rounded-lg flex items-center gap-2 text-sm transition"
+                              className="px-4 py-2 border border-slate-300 hover:bg-slate-50 rounded-lg flex items-center gap-2 text-sm transition cursor-pointer"
                             >
                               <Edit2 className="w-4 h-4" />
                               Edit
                             </button>
                             <button
                               onClick={() => copyEmbedCode(tour.id, tour.slug)}
-                              className="px-4 py-2 border border-slate-300 hover:bg-slate-50 rounded-lg flex items-center gap-2 text-sm transition"
+                              className="px-4 py-2 border border-slate-300 hover:bg-slate-50 rounded-lg flex items-center gap-2 text-sm transition cursor-pointer"
                             >
                               <Copy className="w-4 h-4" />
                               Copy Code
                             </button>
                             <button
                               onClick={() => toggleTourStatus(tour)}
-                              className="px-4 py-2 border border-slate-300 hover:bg-slate-50 rounded-lg flex items-center gap-2 text-sm transition"
+                              className="px-4 py-2 border border-slate-300 hover:bg-slate-50 rounded-lg flex items-center gap-2 text-sm transition cursor-pointer"
                             >
                               {tour.is_public ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                               {tour.is_public ? 'Pause' : 'Activate'}
                             </button>
                             <button
                               onClick={() => handleDeleteTour(tour.id)}
-                              className="px-4 py-2 border border-red-300 text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 text-sm transition"
+                              className="px-4 py-2 border border-red-300 text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 text-sm transition cursor-pointer"
                             >
                               <Trash2 className="w-4 h-4" />
                               Delete
@@ -545,7 +550,7 @@ const openEditModal = (tour: Tour) => {
                       navigator.clipboard.writeText(user?.id || "");
                       toast.success("User ID copied");
                     }}
-                    className="px-3 py-2 bg-slate-900 text-white rounded hover:bg-slate-800"
+                    className="px-3 py-2 bg-slate-900 text-white rounded hover:bg-slate-800 cursor-pointer"
                   >
                     Copy
                   </button>
@@ -563,7 +568,7 @@ const openEditModal = (tour: Tour) => {
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-50"
                   />
                   <button 
-                    className="px-3 py-2 bg-slate-900 text-white rounded hover:bg-slate-800" 
+                    className="px-3 py-2 bg-slate-900 text-white rounded hover:bg-slate-800 cursor-pointer" 
                     onClick={copyApiKey}
                   >
                     Copy
