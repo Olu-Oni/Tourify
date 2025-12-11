@@ -52,18 +52,14 @@ export default function Navbar() {
           <Link href="/documentation" className={isActive("/documentation")}>
             Docs
           </Link>
-          {/* <Link href="/dashboard" className={isActive("/dashboard")}>
-            Dashboard
-          </Link> */}
         </div>
 
         {user ? (
-          <button
-            onClick={handleLogout}
-            className="hidden md:block px-6 py-3 text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300 cursor-pointer"
-          >
-            Log out
-          </button>
+          <Link href="/dashboard">
+            <button className="hidden md:block px-6 py-3 text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300 cursor-pointer">
+              Dashboard
+            </button>
+          </Link>
         ) : (
           <Link href="/login">
             <button className="hidden md:block px-6 py-3 text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300 cursor-pointer">
@@ -75,6 +71,7 @@ export default function Navbar() {
         <button
           className="md:hidden text-white text-2xl"
           onClick={() => setOpen(!open)}
+          aria-label={open ? "Close menu" : "Open menu"}
         >
           {open ? <FiX /> : <FiMenu />}
         </button>
@@ -112,23 +109,34 @@ export default function Navbar() {
               >
                 Docs
               </Link>
-              {/* <Link
-                href="/dashboard"
-                onClick={() => setOpen(false)}
-                className={isActive("/dashboard")}
-              >
-                Dashboard
-              </Link> */}
 
               {user ? (
-                <button
-                  onClick={handleLogout}
-                  className="w-[85%] px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300"
-                >
-                  Log out
-                </button>
+                <>
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setOpen(false)}
+                    className="w-[85%]"
+                  >
+                    <button className="w-full text-white px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300">
+                      Dashboard
+                    </button>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-[85%] px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg transition duration-300"
+                  >
+                    Log out
+                  </button>
+                </>
               ) : (
-                <Link href="/signin" className="w-[85%]">
+                <Link
+                  href="/login"
+                  className="w-[85%]"
+                  onClick={() => setOpen(false)}
+                >
                   <button className="w-full text-white px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-300">
                     Get Started
                   </button>
