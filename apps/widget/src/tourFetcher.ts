@@ -8,101 +8,139 @@ export class TourFetcher {
    */
   static async fetchTourById(tourId: string): Promise<TourData | null> {
     try {
-      // Fetch tour metadata
+      // Step 1: Fetch tour metadata (PUBLIC TOURS ONLY for widget)
+      console.log(`🔍 Fetching tour with ID: ${tourId}`);
+      
       const { data: tourData, error: tourError } = await supabase
         .from('tours')
         .select('*')
-        .eq('tour_id', tourId)
-        .eq('public', true)
+        .eq('id', tourId)  // CORRECT: Your tours table uses 'id'
+        .eq('is_public', true)  // CORRECT: Only fetch public tours
         .single();
 
       if (tourError) {
-        console.error('Error fetching tour:', tourError);
+        console.error('❌ Error fetching tour:', tourError);
         return null;
       }
 
       if (!tourData) {
-        console.warn(`Tour not found: ${tourId}`);
+        console.warn(`⚠️ Tour not found or not public: ${tourId}`);
         return null;
       }
 
-      // Fetch tour steps
+      console.log(`✅ Tour found: "${tourData.title}" (${tourData.slug})`);
+
+      // Step 2: Fetch tour steps
       const { data: stepsData, error: stepsError } = await supabase
         .from('tour_steps')
         .select('*')
-        .eq('tour_id', tourId)
+        .eq('tour_id', tourId)  // CORRECT: Foreign key in tour_steps table
         .order('position', { ascending: true });
 
       if (stepsError) {
-        console.error('Error fetching tour steps:', stepsError);
+        console.error('❌ Error fetching tour steps:', stepsError);
         return null;
       }
 
-      // Transform database format to widget format
+      console.log(`📊 Found ${stepsData?.length || 0} steps`);
+
+      // Step 3: Transform to widget format
       const steps: TourStep[] = (stepsData || []).map(step => ({
-        id: step.step_id,
+        id: step.step_id,  // Use step_id from your DB
         title: step.title,
-        description: step.content,
+        description: step.content,  // Maps to 'content' column in your DB
         target: step.target_selector,
-        position: 'auto' as const, // You can store this in the DB if needed
+        position: this.mapPosition(step.position),
       }));
 
       return {
-        id: tourData.tour_id,
-        name: tourData.slug || tourId,
+        id: tourData.id,
+        name: tourData.title,  // Use title as tour name
         steps,
       };
     } catch (error) {
-      console.error('Failed to fetch tour from Supabase:', error);
+      console.error('💥 Failed to fetch tour from Supabase:', error);
       return null;
     }
   }
 
   /**
-   * Fetch a tour by slug
+   * Convert numeric position to string position for widget
+   */
+  private static mapPosition(position: number): TourStep['position'] {
+    // Based on your DB, position is a number (0, 1, 2, 3, etc.)
+    // Map to widget positions
+    const positions: TourStep['position'][] = [
+      'auto',    // 0
+      'top',     // 1
+      'bottom',  // 2
+      'left',    // 3
+      'right',   // 4
+      'center',  // 5
+    ];
+    
+    return positions[position] || 'auto';
+  }
+
+  /**
+   * Fetch a tour by slug (for public embedding - WIDGET USES THIS)
    */
   static async fetchTourBySlug(slug: string): Promise<TourData | null> {
     try {
+      console.log(`🔍 Fetching public tour by slug: "${slug}"`);
+      
       const { data: tourData, error: tourError } = await supabase
         .from('tours')
         .select('*')
         .eq('slug', slug)
-        .eq('public', true)
+        .eq('is_public', true)  // IMPORTANT: Only public tours for widgets
         .single();
 
-      if (tourError || !tourData) {
+      if (tourError) {
+        console.error('❌ Error fetching tour by slug:', tourError);
         return null;
       }
 
-      return this.fetchTourById(tourData.tour_id);
+      if (!tourData) {
+        console.warn(`⚠️ Public tour with slug "${slug}" not found`);
+        return null;
+      }
+
+      console.log(`✅ Found tour: "${tourData.title}" (ID: ${tourData.id})`);
+      return this.fetchTourById(tourData.id);
+      
     } catch (error) {
-      console.error('Failed to fetch tour by slug:', error);
+      console.error('💥 Failed to fetch tour by slug:', error);
       return null;
     }
   }
 
   /**
-   * Fetch all public tours
+   * Quick test function using YOUR actual tour
    */
-  static async fetchAllTours(): Promise<TourData[]> {
-    try {
-      const { data: toursData, error } = await supabase
-        .from('tours')
-        .select('tour_id')
-        .eq('public', true);
-
-      if (error || !toursData) {
-        return [];
-      }
-
-      const tours = await Promise.all(
-        toursData.map(tour => this.fetchTourById(tour.tour_id))
-      );
-
-      return tours.filter((tour): tour is TourData => tour !== null);
-    } catch (error) {
-      console.error('Failed to fetch all tours:', error);
-      return [];
+  static async testWithActualData(): Promise<void> {
+    console.log('🧪 Testing TourFetcher with actual data...');
+    
+    // Use the tour ID from your logs
+    const tourId = 'a7db84fb-c06f-4ec1-9f3c-43948a461b69';
+    const slug = 'test-this-tour';
+    
+    console.log(`\n1. Testing fetchTourById("${tourId}")...`);
+    const tourById = await this.fetchTourById(tourId);
+    console.log('Result:', tourById ? '✅ Success' : '❌ Failed');
+    
+    console.log(`\n2. Testing fetchTourBySlug("${slug}")...`);
+    const tourBySlug = await this.fetchTourBySlug(slug);
+    console.log('Result:', tourBySlug ? '✅ Success' : '❌ Failed');
+    
+    if (tourBySlug) {
+      console.log('\n📋 Tour details:');
+      console.log('- Name:', tourBySlug.name);
+      console.log('- ID:', tourBySlug.id);
+      console.log('- Steps:', tourBySlug.steps.length);
+      tourBySlug.steps.forEach((step, i) => {
+        console.log(`  ${i + 1}. ${step.title} -> ${step.target}`);
+      });
     }
   }
 }
