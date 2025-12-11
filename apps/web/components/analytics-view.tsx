@@ -327,7 +327,7 @@ const openEditModal = (tour: Tour) => {
       {/* Sidebar */}
       <div className="fixed left-0 top-0 h-full w-64 bg-slate-900 text-white p-6 z-40">
         <div className="text-2xl font-bold mb-8 bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          TourGuide
+          Tourify
         </div>
         
         <nav className="space-y-2">
