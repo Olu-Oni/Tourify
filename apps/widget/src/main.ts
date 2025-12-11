@@ -1,7 +1,72 @@
+// ============================================================================
+// CRITICAL: FIX the module order issue
+// ============================================================================
+
+// Move imports to TOP - they must come before any executable code
+import { TourFetcher } from "./tourFetcher";
 import "./style.css";
 import { TourManager } from "./tourManager";
 import { Analytics } from "./analytics";
 import type { TourData, TourConfig, TourTheme } from "./types/index";
+
+// THEN run browser detection
+(function detectBrowserIssues() {
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+  if (isSafari) {
+    console.log("🌐 Safari detected - applying compatibility mode");
+  }
+})();
+
+// Create global variable to store config from script tag
+declare global {
+  interface Window {
+    __TOURIFY_SCRIPT_CONFIG__?: {
+      tourId: string;
+      autoStart: boolean;
+      showAvatar: boolean;
+      theme: string;
+      apiUrl: string;
+    };
+  }
+}
+
+// Immediately capture the script tag configuration
+(function captureScriptConfig() {
+  // Don't run if config already captured
+  if (window.__TOURIFY_SCRIPT_CONFIG__) return;
+
+  // Wait for DOM to be interactive/complete
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", captureScriptConfig);
+    return;
+  }
+
+  // Find ALL script tags with our attributes
+  const scriptTags = Array.from(document.querySelectorAll("script")).filter(
+    (script) =>
+      script.hasAttribute("data-tour-id") ||
+      script.src?.includes("tourify-widget")
+  );
+
+  // Use the LAST matching script (most likely ours)
+  const scriptTag = scriptTags[scriptTags.length - 1];
+
+  if (scriptTag) {
+    window.__TOURIFY_SCRIPT_CONFIG__ = {
+      tourId: scriptTag.getAttribute("data-tour-id") || "default",
+      autoStart: scriptTag.getAttribute("data-auto-start") !== "false",
+      showAvatar: scriptTag.getAttribute("data-show-avatar") !== "false",
+      theme: scriptTag.getAttribute("data-theme") || "light",
+      apiUrl: scriptTag.getAttribute("data-api-url") || "https://your-api.com",
+    };
+
+    console.log(
+      "📦 Tourify Widget - Config captured:",
+      window.__TOURIFY_SCRIPT_CONFIG__
+    );
+  }
+})();
 
 class TourWidget {
   private tourManager: TourManager | null = null;
@@ -11,7 +76,7 @@ class TourWidget {
 
   init(config: Partial<TourConfig>): void {
     this.siteKey = this.generateSiteKey();
-    
+
     this.config = {
       tourId: config.tourId || "default",
       autoStart: config.autoStart ?? true,
@@ -20,6 +85,8 @@ class TourWidget {
       apiUrl: config.apiUrl || "https://your-api.com",
       ...config,
     };
+
+    console.log("⚙️ Initializing widget with config:", this.config);
 
     this.analytics = new Analytics(this.config.tourId, {
       apiUrl: this.config.apiUrl,
@@ -48,76 +115,80 @@ class TourWidget {
 
     // Step 1: Try to fetch from Supabase
     try {
-      const { TourFetcher } = await import('./tourFetcher');
-      tourData = await TourFetcher.fetchTourById(this.config!.tourId) || 
-                 await TourFetcher.fetchTourBySlug(this.config!.tourId) ||
-                 null as any;
-      
+      // Use TourFetcher directly since it's now statically imported
+      tourData =
+        (await TourFetcher.fetchTourById(this.config!.tourId)) ||
+        (await TourFetcher.fetchTourBySlug(this.config!.tourId)) ||
+        (null as any);
+
       if (tourData) {
-        console.log('✅ Loaded tour from Supabase:', tourData.id);
+        console.log("✅ Loaded tour from Supabase:", tourData.id);
         this.initializeTour(tourData);
         return;
       }
     } catch (supabaseError) {
-      console.warn('Failed to fetch from Supabase:', supabaseError);
+      console.warn("Failed to fetch from Supabase:", supabaseError);
     }
 
     // Step 2: Try to fetch from custom API (only if real API URL provided)
-    if (this.config?.apiUrl && !this.config.apiUrl.includes('your-api.com')) {
+    if (this.config?.apiUrl && !this.config.apiUrl.includes("your-api.com")) {
       try {
         tourData = await this.fetchTourFromAPI();
-        console.log('✅ Loaded tour from API:', tourData.id);
+        console.log("✅ Loaded tour from API:", tourData.id);
         this.initializeTour(tourData);
         return;
       } catch (apiError) {
-        console.warn('Failed to fetch from API:', apiError);
+        console.warn("Failed to fetch from API:", apiError);
       }
     }
 
     // Step 3: Try to get mock tour for the tourId
     const mockTour = this.getMockTourData(this.config!.tourId);
     if (mockTour) {
-      console.log('📋 Using mock tour data:', mockTour.id);
+      console.log("📋 Using mock tour data:", mockTour.id);
       tourData = mockTour;
       this.initializeTour(tourData);
       return;
     }
 
     // Step 4: Fall back to "no tour assigned" message
-    console.log('ℹ️ No tour found for:', this.config!.tourId);
+    console.log("ℹ️ No tour found for:", this.config!.tourId);
     tourData = this.getNoTourData();
     this.initializeTour(tourData);
   }
 
   private async fetchTourFromAPI(): Promise<TourData> {
     if (!this.config?.apiUrl) {
-      throw new Error('No API URL provided');
+      throw new Error("No API URL provided");
     }
 
-    const response = await fetch(`${this.config.apiUrl}/tours/${this.config.tourId}`, {
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await fetch(
+      `${this.config.apiUrl}/tours/${this.config.tourId}`,
+      {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`API request failed: ${response.status}`);
     }
 
     const data = await response.json();
-    
+
     return {
       id: data.id || this.config.tourId,
-      name: data.name || 'Tour',
+      name: data.name || "Tour",
       steps: data.steps || [],
     };
   }
 
   private getMockTourData(tourId: string): TourData | null {
     const mockTours: Record<string, TourData> = {
-      'tourify-default-1': {
-        id: 'tourify-default-1',
+      "tourify-default-1": {
+        id: "tourify-default-1",
         name: "Welcome Tour",
         steps: [
           {
@@ -157,8 +228,8 @@ class TourWidget {
           },
         ],
       },
-      'tourify-default-2': {
-        id: 'tourify-default-2',
+      "tourify-default-2": {
+        id: "tourify-default-2",
         name: "E-Commerce Dashboard Tour",
         steps: [
           {
@@ -258,15 +329,17 @@ class TourWidget {
 
   private getNoTourData(): TourData {
     return {
-      id: 'no-tour',
-      name: 'No Tour Available',
+      id: "no-tour",
+      name: "No Tour Available",
       steps: [
         {
-          id: 'no-tour-step',
-          title: '📭 No Tour Assigned',
-          description: `No tour found for ID: "${this.config!.tourId}". Please check your configuration or contact support.`,
-          target: 'body',
-          position: 'center',
+          id: "no-tour-step",
+          title: "📭 No Tour Assigned",
+          description: `No tour found for ID: "${
+            this.config!.tourId
+          }". Please check your configuration or contact support.`,
+          target: "body",
+          position: "center",
         },
       ],
     };
@@ -282,10 +355,12 @@ class TourWidget {
 
     // Only auto-start if configured to do so
     if (this.config?.autoStart) {
-      console.log('🚀 Auto-starting tour');
+      console.log("🚀 Auto-starting tour");
       this.tourManager.start();
     } else {
-      console.log('⏸️ Tour initialized but not auto-started. Use button or call start() to begin.');
+      console.log(
+        "⏸️ Tour initialized but not auto-started. Use button or call start() to begin."
+      );
     }
 
     this.analytics!.track("tour_initialized", {
@@ -327,66 +402,61 @@ class TourWidget {
 }
 
 // ============================================================================
-// CRITICAL: Capture document.currentScript IMMEDIATELY at top of file
-// This MUST be before ANY functions, imports, or async operations
+// Initialization function
 // ============================================================================
-const SCRIPT_TAG = (() => {
-  // Try document.currentScript first (works in IIFE)
-  if (document.currentScript) {
-    return document.currentScript as HTMLScriptElement;
-  }
-  
-  // Fallback: search for our script in the DOM
-  const scripts = document.querySelectorAll('script');
-  return Array.from(scripts).find(script => {
-    const src = script.getAttribute('src') || '';
-    return (
-      script.hasAttribute('data-tour-id') ||
-      src.includes('tourify-widget')
-    );
-  }) as HTMLScriptElement | null;
-})();
-
-// Log immediately to verify capture
-console.log('📦 Tourify Widget - Script Tag Captured:', SCRIPT_TAG);
-console.log('📦 Tourify Widget - Attributes:', SCRIPT_TAG ? {
-  'data-tour-id': SCRIPT_TAG.getAttribute('data-tour-id'),
-  'data-auto-start': SCRIPT_TAG.getAttribute('data-auto-start'),
-  'data-show-avatar': SCRIPT_TAG.getAttribute('data-show-avatar'),
-  'data-theme': SCRIPT_TAG.getAttribute('data-theme'),
-  'src': SCRIPT_TAG.getAttribute('src'),
-} : 'NO SCRIPT TAG FOUND');
 
 async function initWidget(): Promise<void> {
   let config: Partial<TourConfig>;
-  
+
+  console.log("🎯 Tourify Widget - Starting initialization");
+
   // PRIORITY 1: Check for global config object
   if ((window as any).TOURIFY_CONFIG) {
-    console.log('✅ Using window.TOURIFY_CONFIG');
+    console.log("✅ Using window.TOURIFY_CONFIG");
     config = (window as any).TOURIFY_CONFIG;
-  } 
-  // PRIORITY 2: Use the captured script tag
-  else {
-    const scriptTag = SCRIPT_TAG;
-    
-    if (scriptTag) {
-      console.log('✅ Using captured script tag attributes');
-      console.log('📋 Tour ID:', scriptTag.getAttribute("data-tour-id"));
-    } else {
-      console.warn('⚠️ No script tag found! Using defaults. Consider using window.TOURIFY_CONFIG instead.');
-    }
+  }
+  // PRIORITY 2: Use the captured script tag config
+  else if (window.__TOURIFY_SCRIPT_CONFIG__) {
+    console.log("✅ Using captured script tag config");
+    // Convert the stored config to proper TourConfig type
+    const storedConfig = window.__TOURIFY_SCRIPT_CONFIG__;
+    const validThemes: TourTheme[] = ["light", "dark", "auto"];
+    const theme = validThemes.includes(storedConfig.theme as TourTheme)
+      ? (storedConfig.theme as TourTheme)
+      : "light";
 
-    // Use direct attributes from captured script tag
+    config = {
+      tourId: storedConfig.tourId,
+      autoStart: storedConfig.autoStart,
+      showAvatar: storedConfig.showAvatar,
+      theme: theme,
+      apiUrl: storedConfig.apiUrl,
+    };
+  }
+  // PRIORITY 3: Try to find script tag again (fallback)
+  else {
+    console.warn("⚠️ No config found, searching for script tag again...");
+    const scriptTag = document.querySelector(
+      "script[data-tour-id]"
+    ) as HTMLScriptElement;
+
+    // Validate and convert theme
+    const themeAttr = scriptTag?.getAttribute("data-theme");
+    const validThemes: TourTheme[] = ["light", "dark", "auto"];
+    const theme = validThemes.includes(themeAttr as TourTheme)
+      ? (themeAttr as TourTheme)
+      : "light";
+
     config = {
       tourId: scriptTag?.getAttribute("data-tour-id") || "default",
       autoStart: scriptTag?.getAttribute("data-auto-start") !== "false",
       showAvatar: scriptTag?.getAttribute("data-show-avatar") !== "false",
-      theme: (scriptTag?.getAttribute("data-theme") as TourTheme) || "light",
+      theme: theme,
       apiUrl: scriptTag?.getAttribute("data-api-url") || "https://your-api.com",
     };
   }
-  
-  console.log('⚙️ Final widget config:', config);
+
+  console.log("⚙️ Final widget config:", config);
 
   const widget = new TourWidget();
   widget.init(config);
@@ -396,27 +466,30 @@ async function initWidget(): Promise<void> {
   (window as any).TourifyWidget = TourWidget;
 
   // Auto-attach to restart button if it exists
-  const restartButton = document.getElementById('tourify-restart-btn');
+  const restartButton = document.getElementById("tourify-restart-btn");
   if (restartButton) {
-    restartButton.addEventListener('click', () => widget.restart());
-    restartButton.style.display = 'block';
+    restartButton.addEventListener("click", () => widget.restart());
+    restartButton.style.display = "block";
   }
 
   // Auto-attach to start button if it exists
-  const startButton = document.getElementById('tourify-start-btn');
+  const startButton = document.getElementById("tourify-start-btn");
   if (startButton) {
-    startButton.addEventListener('click', () => {
-      console.log('▶️ Start button clicked');
+    startButton.addEventListener("click", () => {
+      console.log("▶️ Start button clicked");
       widget.start();
     });
     // Show the start button if autoStart is false
     if (config.autoStart === false) {
-      startButton.style.display = 'block';
+      startButton.style.display = "block";
     }
   }
 }
 
-// Auto-initialize
+// ============================================================================
+// Auto-initialize when DOM is ready
+// ============================================================================
+
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initWidget);
 } else {
