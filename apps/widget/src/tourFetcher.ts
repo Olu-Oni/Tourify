@@ -14,8 +14,8 @@ export class TourFetcher {
       const { data: tourData, error: tourError } = await supabase
         .from('tours')
         .select('*')
-        .eq('id', tourId)  // CORRECT: Your tours table uses 'id'
-        .eq('is_public', true)  // CORRECT: Only fetch public tours
+        .eq('id', tourId)  
+        .eq('is_public', true)
         .single();
 
       if (tourError) {
@@ -34,7 +34,7 @@ export class TourFetcher {
       const { data: stepsData, error: stepsError } = await supabase
         .from('tour_steps')
         .select('*')
-        .eq('tour_id', tourId)  // CORRECT: Foreign key in tour_steps table
+        .eq('tour_id', tourId)  
         .order('position', { ascending: true });
 
       if (stepsError) {
@@ -43,6 +43,7 @@ export class TourFetcher {
       }
 
       console.log(`📊 Found ${stepsData?.length || 0} steps`);
+      console.log(`📊 steps are ${stepsData} `);
 
       // Step 3: Transform to widget format
       const steps: TourStep[] = (stepsData || []).map(step => ({
