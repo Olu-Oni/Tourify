@@ -15,20 +15,30 @@ export default defineConfig({
         entryFileNames: "tourify-widget.js",
         assetFileNames: "tourify-widget.[ext]",
         inlineDynamicImports: true,
+        // Ensure the IIFE is named and accessible
+        name: "TourifyWidget",
       },
     },
     minify: "terser",
     terserOptions: {
       compress: {
-        drop_console: true,
+        drop_console: false, // Keep console logs for now to debug
         drop_debugger: true,
       },
+      // Preserve function names for debugging
+      keep_fnames: true,
     },
     copyPublicDir: true,
   },
   server: {
     open: "/test/index.html",
     port: 3000,
+    // ADD CORS HEADERS HERE
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+      "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization",
+    },
   },
   optimizeDeps: {
     include: ["three"],
